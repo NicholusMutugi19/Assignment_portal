@@ -192,6 +192,21 @@ a:hover { opacity: .8; }
 }
 .sidebar-nav a i { width: 16px; text-align: center; }
 
+.sidebar-divider {
+  height: 1px;
+  background: var(--border);
+  margin: .5rem 0;
+  list-style: none;
+}
+
+.logout-link {
+  color: var(--red) !important;
+}
+.logout-link:hover {
+  background: rgba(var(--red-rgb), 0.1) !important;
+  border-left-color: var(--red) !important;
+}
+
 /* ── Main Content ───────────────────────────────────────────── */
 .main-content { padding: 2rem 2.5rem; min-width: 0; }
 

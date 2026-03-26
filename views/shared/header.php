@@ -58,6 +58,8 @@
         <li><a href="/student/assignments.php"><i class="fa fa-book-open"></i> Assignments</a></li>
         <li><a href="/student/submissions.php"><i class="fa fa-file-arrow-up"></i> My Submissions</a></li>
       <?php endif; ?>
+      <li class="sidebar-divider"></li>
+      <li><a href="/auth/logout.php" class="logout-link"><i class="fa fa-right-from-bracket"></i> Logout</a></li>
     </ul>
   </aside>
   <?php endif; ?>
