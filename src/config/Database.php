@@ -32,7 +32,14 @@ class Database
             try {
                 self::$instance = new PDO($dsn, DB_USER, DB_PASS, $options);
             } catch (PDOException $e) {
-                error_log('DB Connection failed: ' . $e->getMessage());
+                $msg = 'DB Connection failed: ' . $e->getMessage();
+                error_log($msg);
+
+                // Detailed message during debug mode (set APP_ENV=development in Render for diagnostics)
+                if (getenv('APP_ENV') === 'development') {
+                    die(json_encode(['error' => $msg]));
+                }
+
                 die(json_encode(['error' => 'Database connection failed.']));
             }
         }
