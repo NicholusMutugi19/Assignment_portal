@@ -113,11 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="auth-footer">
       <p>Don't have an account? <a href="register.php">Register here</a></p>
       <hr class="divider" style="margin:1rem 0">
-      <p style="font-size:.78rem; color:var(--text-dim);">
-        Demo — Lecturer: <code>lecturer@portal.ac.ke</code> |
-        Student: <code>alice@student.ac.ke</code><br>
-        Password: <code>password123</code>
-      </p>
+     
     </div>
   </div>
 </div>
