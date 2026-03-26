@@ -13,6 +13,10 @@ RUN apt-get update && apt-get install -y \
     && a2enmod rewrite \
     && rm -rf /var/lib/apt/lists/*
 
+# Download Aiven CA certificate for SSL connections
+RUN curl -o /usr/local/share/ca-certificates/aiven-ca.pem https://console.aiven.io/static/aiven-root-ca.pem && \
+    update-ca-certificates
+
 # Set working directory
 WORKDIR /var/www/html
 
