@@ -16,6 +16,17 @@ class Database
     public static function getInstance(): PDO
     {
         if (self::$instance === null) {
+            // Validate critical environment variables
+            if (empty(DB_HOST) || empty(DB_NAME) || empty(DB_USER)) {
+                $missing = [];
+                if (empty(DB_HOST)) { $missing[] = 'DB_HOST'; }
+                if (empty(DB_NAME)) { $missing[] = 'DB_NAME'; }
+                if (empty(DB_USER)) { $missing[] = 'DB_USER'; }
+                $message = 'DB connection config invalid, missing: ' . implode(', ', $missing);
+                error_log($message);
+                throw new PDOException($message);
+            }
+
             $dsn = sprintf('mysql:host=%s;port=%d;dbname=%s;charset=%s', DB_HOST, DB_PORT, DB_NAME, DB_CHARSET);
             $options = [
                 PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
