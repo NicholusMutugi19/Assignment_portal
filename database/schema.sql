@@ -3,11 +3,11 @@
 -- Database: assignment_portal
 -- ============================================
 
-CREATE DATABASE IF NOT EXISTS assignment_portal
+CREATE DATABASE IF NOT EXISTS defaultdb
   CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
 
-USE assignment_portal;
+USE defaultdb;
 
 -- ============================================
 -- USERS TABLE

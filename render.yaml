@@ -11,7 +11,7 @@ services:
       - key: DB_PORT
         value: 10033
       - key: DB_NAME
-        value: assignment_portal
+        value: defaultdb
       - key: DB_USER
         value: avnadmin
       - key: DB_PASS
