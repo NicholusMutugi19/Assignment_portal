@@ -42,7 +42,9 @@ class Database
                     throw new PDOException('DB SSL CA bundle not found at ' . $caPath . '. Set DB_SSL_CA to a valid path.');
                 }
                 $options[PDO::MYSQL_ATTR_SSL_CA] = $caPath;
-                $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = true;
+                $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false; // disabled for Aiven MySQL SSL compatibility
+                $options[PDO::MYSQL_ATTR_SSL_KEY] = null;
+                $options[PDO::MYSQL_ATTR_SSL_CERT] = null;
             }
 
             try {
