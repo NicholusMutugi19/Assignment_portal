@@ -15,7 +15,7 @@ services:
       - key: DB_USER
         value: avnadmin
       - key: DB_PASS
-        value: # ADD YOUR AIVEN PASSWORD HERE
+        value: ""
       - key: DB_SSL_MODE
         value: REQUIRED
       - key: APP_URL
@@ -24,5 +24,4 @@ services:
     disk:
       name: uploads
       mountPath: /var/www/html/uploads
-      sizeGB: 1</content>
-<parameter name="filePath">/home/nicdev/Documents/Vscode/assignment_portal/render.yaml
+      sizeGB: 1
