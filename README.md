@@ -34,10 +34,10 @@ For **production deployment**, the app uses environment variables. Update `src/c
 
 ```php
 // Production uses environment variables (set in Render dashboard)
-define('DB_HOST',     getenv('DB_HOST')     ?: '127.0.0.1');
+define('DB_HOST',     getenv('DB_HOST')     ?: '');
 define('DB_PORT',     getenv('DB_PORT')     ?: 3306);
-define('DB_NAME',     getenv('DB_NAME')     ?: 'assignment_portal');
-define('DB_USER',     getenv('DB_USER')     ?: 'root');
+define('DB_NAME',     getenv('DB_NAME')     ?: '');
+define('DB_USER',     getenv('DB_USER')     ?: '');
 define('DB_PASS',     getenv('DB_PASS')     ?: '');
 define('APP_URL',     getenv('APP_URL') ?: '');
 ```
