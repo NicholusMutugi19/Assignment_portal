@@ -27,6 +27,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $title       = trim($_POST['title']       ?? '');
         $description = trim($_POST['description'] ?? '');
         $course_id   = (int)($_POST['course_id'] ?? 0);
+        $deadline    = trim($_POST['deadline']    ?? '');
+        $max_score   = (float)($_POST['max_score'] ?? 100);
+        $allow_late  = !empty($_POST['allow_late']) ? 1 : 0;
+        $late_penalty = (float)($_POST['late_penalty'] ?? 0);
+        $status      = in_array($_POST['status'] ?? 'published', ['published', 'draft']) ? $_POST['status'] : 'published';
 
         // Validate that the selected course is taught by this lecturer
         $courseValid = false;
