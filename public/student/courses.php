@@ -33,7 +33,7 @@ $courseCatalog = [
 
 // Ensure all catalog courses exist in database (with a default lecturer for unassigned cases)
 $existingCodes = array_column(Database::query('SELECT code FROM courses')->fetchAll(), 'code');
-$defaultLecturer = Database::query('SELECT id FROM users WHERE role = "lecturer" ORDER BY id ASC LIMIT 1')->fetch();
+$defaultLecturer = Database::query('SELECT id FROM users WHERE role = \'lecturer\' ORDER BY id ASC LIMIT 1')->fetch();
 
 foreach ($courseCatalog as $courseDef) {
     if (!in_array($courseDef['code'], $existingCodes, true) && $defaultLecturer) {
