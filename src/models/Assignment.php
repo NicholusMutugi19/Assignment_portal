@@ -65,7 +65,7 @@ class Assignment
                     c.title  AS course_title,
                     c.code   AS course_code,
                     COUNT(s.id) AS total_submissions,
-                    SUM(CASE WHEN s.status = "graded" THEN 1 ELSE 0 END) AS graded_count
+                    SUM(CASE WHEN s.status = \'graded\' THEN 1 ELSE 0 END) AS graded_count
              FROM   assignments a
              JOIN   courses     c ON c.id = a.course_id
              LEFT JOIN submissions s ON s.assignment_id = a.id
