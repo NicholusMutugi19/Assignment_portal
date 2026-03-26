@@ -85,7 +85,7 @@ class Assignment
     public static function forStudent(int $studentId): array
     {
         return Database::query(
-            'SELECT a.id, a.course_id, a.lecturer_id, a.title, a.description,
+            "SELECT a.id, a.course_id, a.lecturer_id, a.title, a.description,
                     a.attachment_path, a.attachment_name, a.max_score, a.deadline,
                     a.allow_late, a.late_penalty, a.status, a.created_at, a.updated_at,
                     c.title  AS course_title,
@@ -97,18 +97,18 @@ class Assignment
                     s.is_late,
                     s.submitted_at,
                     CASE
-                        WHEN s.id IS NOT NULL                        THEN "submitted"
-                        WHEN a.deadline < NOW() AND a.allow_late = 0 THEN "closed"
-                        WHEN a.deadline < NOW() AND a.allow_late = 1 THEN "late"
-                        ELSE "pending"
+                        WHEN s.id IS NOT NULL                        THEN 'submitted'
+                        WHEN a.deadline < NOW() AND a.allow_late = 0 THEN 'closed'
+                        WHEN a.deadline < NOW() AND a.allow_late = 1 THEN 'late'
+                        ELSE 'pending'
                     END AS display_status
              FROM   assignments   a
              JOIN   courses       c ON c.id  = a.course_id
              JOIN   enrollments   e ON e.course_id = a.course_id AND e.student_id = :sid
              JOIN   users         u ON u.id  = a.lecturer_id
              LEFT JOIN submissions s ON s.assignment_id = a.id AND s.student_id = :sid2
-             WHERE  a.status != "draft"
-             ORDER  BY a.deadline ASC',
+             WHERE  a.status != 'draft'
+             ORDER  BY a.deadline ASC",
             [':sid' => $studentId, ':sid2' => $studentId]
         )->fetchAll();
     }
