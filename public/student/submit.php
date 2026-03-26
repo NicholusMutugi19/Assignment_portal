@@ -11,14 +11,14 @@ require_once __DIR__ . '/../../src/models/Assignment.php';
 require_once __DIR__ . '/../../src/models/Submission.php';
 require_once __DIR__ . '/../../src/models/FileUploader.php';
 
-Auth::requireRole('student', APP_URL . '/auth/login.php');
+Auth::requireRole('student', '/auth/login.php');
 $user = Auth::user();
 
 $assignmentId = (int)($_GET['assignment_id'] ?? 0);
 $assignment   = $assignmentId ? Assignment::findById($assignmentId) : null;
 
 if (!$assignment) {
-    header('Location: ' . APP_URL . '/student/assignments.php');
+    header('Location: /student/assignments.php');
     exit;
 }
 
@@ -31,7 +31,7 @@ $alreadySub = Submission::existsByStudentAndAssignment((int)$user['id'], $assign
 // Prevent duplicate submission
 if ($alreadySub) {
     $_SESSION['flash'] = ['type'=>'warning','message'=>'You have already submitted this assignment.'];
-    header('Location: ' . APP_URL . '/student/submissions.php');
+    header('Location: /student/submissions.php');
     exit;
 }
 
@@ -81,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'message' => 'Your work has been submitted successfully!' .
                                  ($isLate ? ' (Late — penalty may apply)' : ''),
                 ];
-                header('Location: ' . APP_URL . '/student/submissions.php');
+                header('Location: /student/submissions.php');
                 exit;
             }
         }
@@ -99,7 +99,7 @@ $flash       = null;
     <h1 class="page-title">Submit Assignment</h1>
     <p class="page-subtitle"><?= htmlspecialchars($assignment['course_code'].' — '.$assignment['title']) ?></p>
   </div>
-  <a href="<?= APP_URL ?>/student/assignments.php" class="btn btn-ghost">
+  <a href="/student/assignments.php" class="btn btn-ghost">
     <i class="fa fa-arrow-left"></i> Back
   </a>
 </div>
@@ -114,7 +114,7 @@ $flash       = null;
       </div>
       <?php if (!empty($assignment['attachment_path'])): ?>
         <div style="margin-top:.5rem">
-          <a href="<?= APP_URL ?>/student/download.php?assignment_id=<?= $assignment['id'] ?>" 
+          <a href="/student/download.php?assignment_id=<?= $assignment['id'] ?>" 
              class="btn btn-sm btn-outline" target="_blank">
             <i class="fa fa-download"></i> Download Assignment File
           </a>

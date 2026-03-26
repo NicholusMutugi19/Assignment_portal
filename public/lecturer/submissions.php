@@ -5,7 +5,7 @@ require_once __DIR__ . '/../../src/middleware/Auth.php';
 require_once __DIR__ . '/../../src/models/Assignment.php';
 require_once __DIR__ . '/../../src/models/Submission.php';
 
-Auth::requireRole('lecturer', APP_URL . '/auth/login.php');
+Auth::requireRole('lecturer', '/auth/login.php');
 $user = Auth::user();
 
 // Handle grade update (CRUD: Update)
@@ -46,7 +46,7 @@ unset($_SESSION['flash']);
       </p>
     <?php endif; ?>
   </div>
-  <a href="<?= APP_URL ?>/lecturer/dashboard.php" class="btn btn-ghost">
+  <a href="/lecturer/dashboard.php" class="btn btn-ghost">
     <i class="fa fa-arrow-left"></i> Dashboard
   </a>
 </div>
@@ -170,7 +170,7 @@ unset($_SESSION['flash']);
             <?php endif; ?>
           </td>
           <td>
-            <a href="<?= APP_URL ?>/lecturer/view_submission.php?id=<?= $sub['id'] ?>"
+            <a href="/lecturer/view_submission.php?id=<?= $sub['id'] ?>"
                class="btn btn-ghost btn-sm">
               <i class="fa fa-eye"></i> Detail
             </a>

@@ -6,7 +6,7 @@ require_once __DIR__ . '/../../src/models/Assignment.php';
 require_once __DIR__ . '/../../src/models/User.php';
 require_once __DIR__ . '/../../src/models/FileUploader.php';
 
-Auth::requireRole('lecturer', APP_URL . '/auth/login.php');
+Auth::requireRole('lecturer', '/auth/login.php');
 $user    = Auth::user();
 
 // Get courses taught by this lecturer
@@ -79,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'status'          => $status,
             ]);
             $_SESSION['flash'] = ['type'=>'success','message'=>'Assignment created successfully!'];
-            header('Location: ' . APP_URL . '/lecturer/submissions.php?assignment_id=' . $id);
+            header('Location: /lecturer/submissions.php?assignment_id=' . $id);
             exit;
         }
     }
@@ -95,7 +95,7 @@ $flash     = null;
     <h1 class="page-title">Create Assignment</h1>
     <p class="page-subtitle">Post a new assignment for your students</p>
   </div>
-  <a href="<?= APP_URL ?>/lecturer/dashboard.php" class="btn btn-ghost">
+  <a href="/lecturer/dashboard.php" class="btn btn-ghost">
     <i class="fa fa-arrow-left"></i> Back
   </a>
 </div>
@@ -225,7 +225,7 @@ $flash     = null;
       <button type="submit" class="btn btn-primary btn-lg" data-submit>
         <i class="fa fa-paper-plane"></i> Post Assignment
       </button>
-      <a href="<?= APP_URL ?>/lecturer/dashboard.php" class="btn btn-ghost btn-lg">Cancel</a>
+      <a href="/lecturer/dashboard.php" class="btn btn-ghost btn-lg">Cancel</a>
     </div>
   </form>
 </div>

@@ -9,7 +9,7 @@ require_once __DIR__ . '/../../src/config/Database.php';
 require_once __DIR__ . '/../../src/middleware/Auth.php';
 require_once __DIR__ . '/../../src/models/Assignment.php';
 
-Auth::requireRole('student', APP_URL . '/auth/login.php');
+Auth::requireRole('student', '/auth/login.php');
 $user = Auth::user();
 
 $assignmentId = (int)($_GET['assignment_id'] ?? 0);

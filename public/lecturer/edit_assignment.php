@@ -4,13 +4,13 @@ require_once __DIR__ . '/../../src/config/Database.php';
 require_once __DIR__ . '/../../src/middleware/Auth.php';
 require_once __DIR__ . '/../../src/models/Assignment.php';
 
-Auth::requireRole('lecturer', APP_URL . '/auth/login.php');
+Auth::requireRole('lecturer', '/auth/login.php');
 $user = Auth::user();
 
 $id         = (int)($_GET['id'] ?? 0);
 $assignment = Assignment::findById($id);
 if (!$assignment || $assignment['lecturer_id'] != $user['id']) {
-    header('Location: ' . APP_URL . '/lecturer/assignments.php');
+    header('Location: /lecturer/assignments.php');
     exit;
 }
 
@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'status'       => $status,
             ]);
             $_SESSION['flash'] = ['type'=>'success','message'=>'Assignment updated successfully.'];
-            header('Location: ' . APP_URL . '/lecturer/assignments.php');
+            header('Location: /lecturer/assignments.php');
             exit;
         }
     }
@@ -70,7 +70,7 @@ $flash = null;
     <h1 class="page-title">Edit Assignment</h1>
     <p class="page-subtitle"><?= htmlspecialchars($assignment['course_code'].' — '.$assignment['course_title']) ?></p>
   </div>
-  <a href="<?= APP_URL ?>/lecturer/assignments.php" class="btn btn-ghost">
+  <a href="/lecturer/assignments.php" class="btn btn-ghost">
     <i class="fa fa-arrow-left"></i> Back
   </a>
 </div>
@@ -132,7 +132,7 @@ $flash = null;
       <button type="submit" class="btn btn-primary btn-lg">
         <i class="fa fa-floppy-disk"></i> Save Changes
       </button>
-      <a href="<?= APP_URL ?>/lecturer/assignments.php" class="btn btn-ghost btn-lg">Cancel</a>
+      <a href="/lecturer/assignments.php" class="btn btn-ghost btn-lg">Cancel</a>
     </div>
   </form>
 </div>

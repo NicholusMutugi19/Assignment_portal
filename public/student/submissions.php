@@ -4,7 +4,7 @@ require_once __DIR__ . '/../../src/config/Database.php';
 require_once __DIR__ . '/../../src/middleware/Auth.php';
 require_once __DIR__ . '/../../src/models/Submission.php';
 
-Auth::requireRole('student', APP_URL . '/auth/login.php');
+Auth::requireRole('student', '/auth/login.php');
 $user        = Auth::user();
 $submissions = Submission::forStudent((int)$user['id']);
 
@@ -25,7 +25,7 @@ unset($_SESSION['flash']);
   <div class="empty-state">
     <div class="empty-state-icon"><i class="fa fa-file-arrow-up"></i></div>
     <h3>No submissions yet</h3>
-    <p>Go to <a href="<?= APP_URL ?>/student/assignments.php">Assignments</a> to submit your work.</p>
+    <p>Go to <a href="/student/assignments.php">Assignments</a> to submit your work.</p>
   </div>
 <?php else: ?>
 <div class="card">

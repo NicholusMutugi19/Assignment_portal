@@ -6,7 +6,7 @@ require_once __DIR__ . '/../../src/models/Assignment.php';
 require_once __DIR__ . '/../../src/models/User.php';
 require_once __DIR__ . '/../../src/models/Submission.php';
 
-Auth::requireRole('lecturer', APP_URL . '/auth/login.php');
+Auth::requireRole('lecturer', '/auth/login.php');
 $user        = Auth::user();
 $assignments = Assignment::forLecturer((int)$user['id']);
 $courses     = User::taughtCourses((int)$user['id']);
@@ -28,7 +28,7 @@ unset($_SESSION['flash']);
     <h1 class="page-title">Welcome back, <?= htmlspecialchars(explode(' ', $user['name'])[0]) ?> 👋</h1>
     <p class="page-subtitle">You are teaching <?= count($courses) ?> course<?= count($courses) !== 1 ? 's' : '' ?></p>
   </div>
-  <a href="<?= APP_URL ?>/lecturer/create_assignment.php" class="btn btn-primary">
+  <a href="/lecturer/create_assignment.php" class="btn btn-primary">
     <i class="fa fa-plus"></i> New Assignment
   </a>
 </div>
@@ -61,7 +61,7 @@ unset($_SESSION['flash']);
 <div class="card">
   <div class="card-header">
     <h2 class="card-title"><i class="fa fa-list-check text-accent"></i> &nbsp;Assignments</h2>
-    <a href="<?= APP_URL ?>/lecturer/assignments.php" class="btn btn-ghost btn-sm">View All</a>
+    <a href="/lecturer/assignments.php" class="btn btn-ghost btn-sm">View All</a>
   </div>
 
   <?php if (empty($assignments)): ?>
@@ -69,7 +69,7 @@ unset($_SESSION['flash']);
       <div class="empty-state-icon"><i class="fa fa-folder-open"></i></div>
       <h3>No assignments yet</h3>
       <p>Create your first assignment to get started.</p>
-      <a href="<?= APP_URL ?>/lecturer/create_assignment.php" class="btn btn-primary mt-2">
+      <a href="/lecturer/create_assignment.php" class="btn btn-primary mt-2">
         <i class="fa fa-plus"></i> Create Assignment
       </a>
     </div>
@@ -113,7 +113,7 @@ unset($_SESSION['flash']);
             <span class="text-muted"> / <?= $a['graded_count'] ?> graded</span>
           </td>
           <td>
-            <a href="<?= APP_URL ?>/lecturer/submissions.php?assignment_id=<?= $a['id'] ?>" class="btn btn-ghost btn-sm">
+            <a href="/lecturer/submissions.php?assignment_id=<?= $a['id'] ?>" class="btn btn-ghost btn-sm">
               <i class="fa fa-eye"></i> View
             </a>
           </td>

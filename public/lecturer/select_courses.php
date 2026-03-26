@@ -28,7 +28,7 @@ $availableCourses = [
     ['id' => 20, 'code' => 'CS702', 'title' => 'Capstone Project']
 ];
 
-Auth::requireRole('lecturer', APP_URL . '/auth/login.php');
+Auth::requireRole('lecturer', '/auth/login.php');
 $user = Auth::user();
 
 // Get lecturer's currently taught courses
@@ -71,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $success = true;
         $_SESSION['flash'] = ['type' => 'success', 'message' => 'Teaching courses updated successfully!'];
-        header('Location: ' . APP_URL . '/lecturer/dashboard.php');
+        header('Location: /lecturer/dashboard.php');
         exit;
     }
 }

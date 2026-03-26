@@ -5,7 +5,7 @@ require_once __DIR__ . '/../../src/middleware/Auth.php';
 require_once __DIR__ . '/../../src/models/User.php';
 require_once __DIR__ . '/../../src/models/Assignment.php';
 
-Auth::requireRole('lecturer', APP_URL . '/auth/login.php');
+Auth::requireRole('lecturer', '/auth/login.php');
 $user    = Auth::user();
 $courses = User::taughtCourses((int)$user['id']);
 
@@ -21,10 +21,10 @@ unset($_SESSION['flash']);
     <p class="page-subtitle">Courses you're teaching</p>
   </div>
   <div class="page-actions">
-    <a href="<?= APP_URL ?>/lecturer/select_courses.php" class="btn btn-secondary">
+    <a href="/lecturer/select_courses.php" class="btn btn-secondary">
       <i class="fa fa-edit"></i> Manage Courses
     </a>
-    <a href="<?= APP_URL ?>/lecturer/create_assignment.php" class="btn btn-primary">
+    <a href="/lecturer/create_assignment.php" class="btn btn-primary">
       <i class="fa fa-plus"></i> Create Assignment
     </a>
   </div>
@@ -47,7 +47,7 @@ unset($_SESSION['flash']);
       <div class="empty-state-icon"><i class="fa fa-book-open"></i></div>
       <h3>No courses yet</h3>
       <p>Create your first assignment to get started with a course.</p>
-      <a href="<?= APP_URL ?>/lecturer/create_assignment.php" class="btn btn-primary mt-2">
+      <a href="/lecturer/create_assignment.php" class="btn btn-primary mt-2">
         <i class="fa fa-plus"></i> Create Assignment
       </a>
     </div>

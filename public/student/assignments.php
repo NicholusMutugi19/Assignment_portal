@@ -4,7 +4,7 @@ require_once __DIR__ . '/../../src/config/Database.php';
 require_once __DIR__ . '/../../src/middleware/Auth.php';
 require_once __DIR__ . '/../../src/models/Assignment.php';
 
-Auth::requireRole('student', APP_URL . '/auth/login.php');
+Auth::requireRole('student', '/auth/login.php');
 $user        = Auth::user();
 $assignments = Assignment::forStudent((int)$user['id']);
 
@@ -72,7 +72,7 @@ $flash = null;
 
       <?php if (!empty($a['attachment_path'])): ?>
         <div class="assignment-attachment">
-          <a href="<?= APP_URL ?>/student/download.php?assignment_id=<?= $a['id'] ?>" 
+          <a href="/student/download.php?assignment_id=<?= $a['id'] ?>" 
              class="btn btn-sm btn-outline" target="_blank">
             <i class="fa fa-download"></i> Download Assignment File
           </a>
@@ -104,7 +104,7 @@ $flash = null;
           <i class="fa fa-circle-check"></i> Submitted <?= date('M j, Y', strtotime($a['submitted_at'])) ?>
         </div>
       <?php elseif (in_array($a['display_status'], ['pending','late'])): ?>
-        <a href="<?= APP_URL ?>/student/submit.php?assignment_id=<?= $a['id'] ?>"
+        <a href="/student/submit.php?assignment_id=<?= $a['id'] ?>"
            class="btn btn-primary" style="width:100%;justify-content:center">
           <i class="fa fa-file-arrow-up"></i>
           <?= $a['display_status']==='late' ? 'Submit Late' : 'Submit Work' ?>

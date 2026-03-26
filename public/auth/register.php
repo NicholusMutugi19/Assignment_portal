@@ -6,7 +6,7 @@ require_once __DIR__ . '/../../src/models/User.php';
 
 Auth::start();
 if (Auth::isLoggedIn()) {
-    header('Location: ' . APP_URL . '/' . Auth::user()['role'] . '/dashboard.php');
+    header('Location: /' . Auth::user()['role'] . '/dashboard.php');
     exit;
 }
 
@@ -33,9 +33,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Redirect to course selection
         if ($role === 'student') {
-            header('Location: ' . APP_URL . '/student/courses.php');
+            header('Location: /student/courses.php');
         } else {
-            header('Location: ' . APP_URL . '/lecturer/select_courses.php');
+            header('Location: /lecturer/select_courses.php');
         }
         exit;
     }
@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <title>Register — <?= APP_NAME ?></title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="<?= APP_URL ?>/css/app.css">
+<link rel="stylesheet" href="/css/app.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>

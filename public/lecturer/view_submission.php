@@ -5,12 +5,12 @@ require_once __DIR__ . '/../../src/middleware/Auth.php';
 require_once __DIR__ . '/../../src/models/Submission.php';
 require_once __DIR__ . '/../../src/models/Assignment.php';
 
-Auth::requireRole('lecturer', APP_URL . '/auth/login.php');
+Auth::requireRole('lecturer', '/auth/login.php');
 $user = Auth::user();
 
 $id  = (int)($_GET['id'] ?? 0);
 $sub = Submission::findById($id);
-if (!$sub) { header('Location: ' . APP_URL . '/lecturer/submissions.php'); exit; }
+if (!$sub) { header('Location: /lecturer/submissions.php'); exit; }
 
 // Handle grade update
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -35,7 +35,7 @@ $ext = strtolower(pathinfo($sub['original_name'], PATHINFO_EXTENSION));
     <h1 class="page-title">Submission Detail</h1>
     <p class="page-subtitle"><?= htmlspecialchars($sub['assignment_title']) ?></p>
   </div>
-  <a href="<?= APP_URL ?>/lecturer/submissions.php?assignment_id=<?= $sub['assignment_id'] ?>"
+  <a href="/lecturer/submissions.php?assignment_id=<?= $sub['assignment_id'] ?>"
      class="btn btn-ghost"><i class="fa fa-arrow-left"></i> Back</a>
 </div>
 

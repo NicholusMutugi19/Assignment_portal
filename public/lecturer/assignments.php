@@ -4,7 +4,7 @@ require_once __DIR__ . '/../../src/config/Database.php';
 require_once __DIR__ . '/../../src/middleware/Auth.php';
 require_once __DIR__ . '/../../src/models/Assignment.php';
 
-Auth::requireRole('lecturer', APP_URL . '/auth/login.php');
+Auth::requireRole('lecturer', '/auth/login.php');
 $user        = Auth::user();
 $assignments = Assignment::forLecturer((int)$user['id']);
 
@@ -19,7 +19,7 @@ unset($_SESSION['flash']);
     <h1 class="page-title">My Assignments</h1>
     <p class="page-subtitle"><?= count($assignments) ?> assignment<?= count($assignments) !== 1 ? 's':'' ?> total</p>
   </div>
-  <a href="<?= APP_URL ?>/lecturer/create_assignment.php" class="btn btn-primary">
+  <a href="/lecturer/create_assignment.php" class="btn btn-primary">
     <i class="fa fa-plus"></i> New Assignment
   </a>
 </div>
@@ -29,7 +29,7 @@ unset($_SESSION['flash']);
     <div class="empty-state-icon"><i class="fa fa-folder-open"></i></div>
     <h3>No assignments yet</h3>
     <p>Create your first assignment to get started.</p>
-    <a href="<?= APP_URL ?>/lecturer/create_assignment.php" class="btn btn-primary mt-2">
+    <a href="/lecturer/create_assignment.php" class="btn btn-primary mt-2">
       <i class="fa fa-plus"></i> Create Assignment
     </a>
   </div>
@@ -56,11 +56,11 @@ unset($_SESSION['flash']);
         <span><i class="fa fa-trophy"></i> Max <?= $a['max_score'] ?></span>
       </div>
       <div class="d-flex gap-1 mt-1">
-        <a href="<?= APP_URL ?>/lecturer/submissions.php?assignment_id=<?= $a['id'] ?>"
+        <a href="/lecturer/submissions.php?assignment_id=<?= $a['id'] ?>"
            class="btn btn-ghost btn-sm" style="flex:1;justify-content:center">
           <i class="fa fa-eye"></i> View Submissions
         </a>
-        <a href="<?= APP_URL ?>/lecturer/edit_assignment.php?id=<?= $a['id'] ?>"
+        <a href="/lecturer/edit_assignment.php?id=<?= $a['id'] ?>"
            class="btn btn-ghost btn-sm">
           <i class="fa fa-pen"></i>
         </a>

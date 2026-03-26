@@ -4,7 +4,7 @@ require_once __DIR__ . '/../../src/config/Database.php';
 require_once __DIR__ . '/../../src/middleware/Auth.php';
 require_once __DIR__ . '/../../src/models/User.php';
 
-Auth::requireRole('student', APP_URL . '/auth/login.php');
+Auth::requireRole('student', '/auth/login.php');
 $user = Auth::user();
 
 // Global course catalog fallback to keep 20 units always available for students
@@ -71,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $success = true;
         $_SESSION['flash'] = ['type' => 'success', 'message' => 'Course selections have been saved.'];
-        header('Location: ' . APP_URL . '/student/dashboard.php');
+        header('Location: /student/dashboard.php');
         exit;
     }
 }

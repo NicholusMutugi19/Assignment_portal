@@ -6,7 +6,7 @@ require_once __DIR__ . '/../../src/models/Assignment.php';
 require_once __DIR__ . '/../../src/models/Submission.php';
 require_once __DIR__ . '/../../src/models/User.php';
 
-Auth::requireRole('student', APP_URL . '/auth/login.php');
+Auth::requireRole('student', '/auth/login.php');
 $user        = Auth::user();
 $assignments = Assignment::forStudent((int)$user['id']);
 $submissions = Submission::forStudent((int)$user['id']);
@@ -30,7 +30,7 @@ unset($_SESSION['flash']);
     </h1>
     <p class="page-subtitle">You are enrolled in <?= count($courses) ?> course<?= count($courses)!==1?'s':'' ?></p>
   </div>
-  <a href="<?= APP_URL ?>/student/courses.php" class="btn btn-secondary">
+  <a href="/student/courses.php" class="btn btn-secondary">
     <i class="fa fa-edit"></i> Manage Courses
   </a>
 </div>
@@ -63,7 +63,7 @@ unset($_SESSION['flash']);
 <div class="card">
   <div class="card-header">
     <h2 class="card-title"><i class="fa fa-book-open text-accent"></i> &nbsp;Active Assignments</h2>
-    <a href="<?= APP_URL ?>/student/assignments.php" class="btn btn-ghost btn-sm">View All</a>
+    <a href="/student/assignments.php" class="btn btn-ghost btn-sm">View All</a>
   </div>
 
   <?php
@@ -114,7 +114,7 @@ unset($_SESSION['flash']);
         <?php endif; ?>
       </div>
       <?php if (in_array($a['display_status'], ['pending','late'])): ?>
-        <a href="<?= APP_URL ?>/student/submit.php?assignment_id=<?= $a['id'] ?>"
+        <a href="/student/submit.php?assignment_id=<?= $a['id'] ?>"
            class="btn btn-primary" style="width:100%;justify-content:center">
           <i class="fa fa-file-arrow-up"></i> Submit Work
         </a>

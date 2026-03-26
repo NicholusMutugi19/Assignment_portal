@@ -6,8 +6,8 @@ Auth::start();
 
 if (Auth::isLoggedIn()) {
     $role = Auth::user()['role'];
-    header('Location: ' . APP_URL . '/' . $role . '/dashboard.php');
+    header('Location: /' . $role . '/dashboard.php');
 } else {
-    header('Location: ' . APP_URL . '/auth/login.php');
+    header('Location: /auth/login.php');
 }
 exit;
