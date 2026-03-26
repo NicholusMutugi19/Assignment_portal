@@ -37,15 +37,9 @@ class Database
             // Add SSL configuration for Aiven MySQL
             $sslMode = strtoupper(getenv('DB_SSL_MODE') ?: '');
             if ($sslMode === 'REQUIRED' || $sslMode === 'PREFERRED') {
-                $caPath = getenv('DB_SSL_CA') ?: '/usr/local/share/ca-certificates/aiven-ca.pem';
-                if (!file_exists($caPath)) {
-                    // Fallback to system CA certificates if specific CA file not found
-                    $options[PDO::MYSQL_ATTR_SSL_CA] = null;
-                    $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
-                } else {
-                    $options[PDO::MYSQL_ATTR_SSL_CA] = $caPath;
-                    $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
-                }
+                // Simple SSL configuration that works with Aiven
+                $options[PDO::MYSQL_ATTR_SSL_CA] = null; // Use system CA certificates
+                $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false; // Disable server cert verification
                 $options[PDO::MYSQL_ATTR_SSL_KEY] = null;
                 $options[PDO::MYSQL_ATTR_SSL_CERT] = null;
             }
