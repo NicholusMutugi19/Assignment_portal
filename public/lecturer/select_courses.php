@@ -44,28 +44,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($selectedCourses)) {
         $errors[] = 'Please select at least one course to teach.';
     } else {
-        // Remove existing courses taught by this lecturer
-        Database::query('DELETE FROM courses WHERE lecturer_id = :lid', [':lid' => $user['id']]);
+        // Default lecturer fallback is used for non-selected courses to keep catalog entries available for students
+        $defaultLecturer = Database::query('SELECT id FROM users WHERE role = \'' . 'lecturer' . '\' ORDER BY id ASC LIMIT 1')->fetch();
+        $defaultLecturerId = $defaultLecturer ? (int)$defaultLecturer['id'] : (int)$user['id'];
 
-        // Create selected courses
+        // Normalize selected codes from index values
+        $selectedCodes = [];
         foreach ($selectedCourses as $courseIndex) {
-            $course = $availableCourses[$courseIndex - 1]; // Array is 0-indexed, IDs are 1-indexed
+            $idx = (int)$courseIndex - 1;
+            if (isset($availableCourses[$idx])) {
+                $selectedCodes[] = $availableCourses[$idx]['code'];
+            }
+        }
+        $selectedCodes = array_unique($selectedCodes);
 
-            // Check if course already exists (created by another lecturer)
+        foreach ($availableCourses as $course) {
+            $courseCode = $course['code'];
+            $courseTitle = $course['title'];
             $existing = Database::query(
-                'SELECT id FROM courses WHERE code = :code',
-                [':code' => $course['code']]
+                'SELECT id, lecturer_id FROM courses WHERE code = :code',
+                [':code' => $courseCode]
             )->fetch();
 
-            if (!$existing) {
-                Database::query(
-                    'INSERT INTO courses (code, title, lecturer_id) VALUES (:code, :title, :lid)',
-                    [
-                        ':code'  => $course['code'],
-                        ':title' => $course['title'],
-                        ':lid'   => $user['id']
-                    ]
-                );
+            if (in_array($courseCode, $selectedCodes, true)) {
+                if ($existing) {
+                    // Assign selected course to this lecturer
+                    Database::query(
+                        'UPDATE courses SET lecturer_id = :lid WHERE id = :id',
+                        [':lid' => $user['id'], ':id' => $existing['id']]
+                    );
+                } else {
+                    Database::query(
+                        'INSERT INTO courses (code, title, lecturer_id) VALUES (:code, :title, :lid)',
+                        [':code' => $courseCode, ':title' => $courseTitle, ':lid' => $user['id']]
+                    );
+                }
+            } else {
+                if ($existing && (int)$existing['lecturer_id'] === (int)$user['id']) {
+                    // Release course to default lecturer when unselected
+                    Database::query(
+                        'UPDATE courses SET lecturer_id = :lid WHERE id = :id',
+                        [':lid' => $defaultLecturerId, ':id' => $existing['id']]
+                    );
+                }
             }
         }
 
