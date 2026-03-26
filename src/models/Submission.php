@@ -129,7 +129,7 @@ class Submission
         $row = Database::query(
             'SELECT
                 COUNT(*)                                          AS total,
-                SUM(CASE WHEN s.status = \'graded\' THEN 1 ELSE 0 END) AS graded,
+                SUM(CASE WHEN s.score IS NOT NULL THEN 1 ELSE 0 END) AS graded,
                 SUM(s.is_late)                                   AS late_count,
                 AVG(CASE WHEN s.score IS NOT NULL THEN s.score END)   AS avg_score
              FROM submissions s
@@ -167,7 +167,7 @@ class Submission
         $row = Database::query(
             'SELECT
                 COUNT(*)                                          AS total,
-                SUM(CASE WHEN status=\'graded\' THEN 1 ELSE 0 END) AS graded,
+                SUM(CASE WHEN score IS NOT NULL THEN 1 ELSE 0 END) AS graded,
                 SUM(is_late)                                      AS late_count,
                 AVG(CASE WHEN score IS NOT NULL THEN score END)   AS avg_score
              FROM submissions

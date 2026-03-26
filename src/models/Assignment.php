@@ -61,16 +61,21 @@ class Assignment
     public static function forLecturer(int $lecturerId): array
     {
         return Database::query(
-            'SELECT a.*,
+            'SELECT a.id, a.course_id, a.lecturer_id, a.title, a.description,
+                    a.attachment_path, a.attachment_name, a.max_score, a.deadline,
+                    a.allow_late, a.late_penalty, a.status, a.created_at, a.updated_at,
                     c.title  AS course_title,
                     c.code   AS course_code,
                     COUNT(s.id) AS total_submissions,
-                    SUM(CASE WHEN s.status = \'graded\' THEN 1 ELSE 0 END) AS graded_count
+                    SUM(CASE WHEN s.score IS NOT NULL THEN 1 ELSE 0 END) AS graded_count
              FROM   assignments a
              JOIN   courses     c ON c.id = a.course_id
              LEFT JOIN submissions s ON s.assignment_id = a.id
              WHERE  a.lecturer_id = :lid
-             GROUP  BY a.id
+             GROUP  BY a.id, a.course_id, a.lecturer_id, a.title, a.description,
+                      a.attachment_path, a.attachment_name, a.max_score, a.deadline,
+                      a.allow_late, a.late_penalty, a.status, a.created_at, a.updated_at,
+                      c.title, c.code
              ORDER  BY a.deadline DESC',
             [':lid' => $lecturerId]
         )->fetchAll();
@@ -80,7 +85,9 @@ class Assignment
     public static function forStudent(int $studentId): array
     {
         return Database::query(
-            'SELECT a.*,
+            'SELECT a.id, a.course_id, a.lecturer_id, a.title, a.description,
+                    a.attachment_path, a.attachment_name, a.max_score, a.deadline,
+                    a.allow_late, a.late_penalty, a.status, a.created_at, a.updated_at,
                     c.title  AS course_title,
                     c.code   AS course_code,
                     u.name   AS lecturer_name,
@@ -109,7 +116,10 @@ class Assignment
     public static function forCourse(int $courseId): array
     {
         return Database::query(
-            'SELECT a.*, c.title AS course_title, c.code AS course_code,
+            'SELECT a.id, a.course_id, a.lecturer_id, a.title, a.description,
+                    a.attachment_path, a.attachment_name, a.max_score, a.deadline,
+                    a.allow_late, a.late_penalty, a.status, a.created_at, a.updated_at,
+                    c.title AS course_title, c.code AS course_code,
                     u.name AS lecturer_name,
                     COUNT(s.id) AS total_submissions,
                     COUNT(CASE WHEN s.score IS NOT NULL THEN 1 END) AS graded_count
@@ -118,7 +128,10 @@ class Assignment
              JOIN   users        u ON u.id = a.lecturer_id
              LEFT JOIN submissions s ON s.assignment_id = a.id
              WHERE  a.course_id = :cid
-             GROUP  BY a.id
+             GROUP  BY a.id, a.course_id, a.lecturer_id, a.title, a.description,
+                      a.attachment_path, a.attachment_name, a.max_score, a.deadline,
+                      a.allow_late, a.late_penalty, a.status, a.created_at, a.updated_at,
+                      c.title, c.code, u.name
              ORDER  BY a.created_at DESC',
             [':cid' => $courseId]
         )->fetchAll();
