@@ -37,8 +37,7 @@ class Database
             // Add SSL configuration for Aiven MySQL
             $sslMode = strtoupper(getenv('DB_SSL_MODE') ?: '');
             if ($sslMode === 'REQUIRED' || $sslMode === 'PREFERRED') {
-                // Enable SSL without specific certificate settings
-                $options[PDO::MYSQL_ATTR_SSL_DO_VERIFY_SERVER_CERT] = 0; // Disable verification
+                // Enable SSL with minimal verification (matches working MySQL CLI config)
                 $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
             }
 
