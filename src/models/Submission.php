@@ -151,7 +151,7 @@ class Submission
                     feedback   = :feedback,
                     graded_by  = :graded_by,
                     graded_at  = NOW(),
-                    status     = "graded"
+                    status     = \'graded\'
              WHERE  id = :id',
             [':score' => $score, ':feedback' => $feedback,
              ':graded_by' => $gradedBy, ':id' => $id]
