@@ -30,18 +30,25 @@ This creates the `assignment_portal` database, all tables, and sample data inclu
 
 ### 2. Configure Database Credentials
 
-Edit `src/config/database.php`:
+For **production deployment**, the app uses environment variables. Update `src/config/database.php`:
 
+```php
+// Production uses environment variables (set in Render dashboard)
+define('DB_HOST',     getenv('DB_HOST')     ?: '127.0.0.1');
+define('DB_PORT',     getenv('DB_PORT')     ?: 3306);
+define('DB_NAME',     getenv('DB_NAME')     ?: 'assignment_portal');
+define('DB_USER',     getenv('DB_USER')     ?: 'root');
+define('DB_PASS',     getenv('DB_PASS')     ?: '');
+define('APP_URL',     getenv('APP_URL')     ?: 'http://localhost:8000');
+```
+
+For **local development**, use:
 ```php
 define('DB_HOST', 'localhost');
 define('DB_NAME', 'assignment_portal');
 define('DB_USER', 'root');       // ← your MySQL user
 define('DB_PASS', '');           // ← your MySQL password
-```
-
-Also update `APP_URL` to match your server:
-```php
-define('APP_URL', 'http://localhost/assignment_portal/public');
+define('APP_URL', 'http://localhost:8000');
 ```
 
 ---
@@ -59,22 +66,35 @@ chown -R www-data:www-data public/uploads/
 
 ---
 
-### 4. Point Web Server to `public/`
+### 4. Production Deployment
 
-**Apache Virtual Host:**
-```apache
-<VirtualHost *:80>
-    DocumentRoot /path/to/assignment_portal/public
-    ServerName assignment-portal.local
-    <Directory /path/to/assignment_portal/public>
-        AllowOverride All
-        Require all granted
-    </Directory>
-</VirtualHost>
+**Deploy to Render.com:**
+
+1. **Set up Aiven MySQL Database:**
+   - Create account at [aiven.io](https://aiven.io)
+   - Create MySQL service (Free tier available)
+   - Note connection details (host, port, user, password)
+
+2. **Deploy to Render:**
+   - Connect your GitHub repository
+   - Render auto-detects `render.yaml` configuration
+   - Set environment variables in Render dashboard:
+     - `DB_HOST`: Your Aiven MySQL host
+     - `DB_PORT`: 10033 (Aiven default)
+     - `DB_NAME`: defaultdb
+     - `DB_USER`: avnadmin
+     - `DB_PASS`: Your Aiven password
+     - `APP_URL`: https://your-app-name.onrender.com
+
+3. **Import Database Schema:**
+   - Connect to Aiven MySQL and run `database/schema.sql`
+
+**Local Development (PHP built-in server):**
+```bash
+cd assignment_portal
+php -S localhost:8000 -t public
 ```
-
-**XAMPP (quick setup):** Place the whole `assignment_portal/` folder inside `htdocs/`, then visit:
-`http://localhost/assignment_portal/public/`
+Visit: `http://localhost:8000`
 
 ---
 
