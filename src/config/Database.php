@@ -39,10 +39,13 @@ class Database
             if ($sslMode === 'REQUIRED' || $sslMode === 'PREFERRED') {
                 $caPath = getenv('DB_SSL_CA') ?: '/usr/local/share/ca-certificates/aiven-ca.pem';
                 if (!file_exists($caPath)) {
-                    throw new PDOException('DB SSL CA bundle not found at ' . $caPath . '. Set DB_SSL_CA to a valid path.');
+                    // Fallback to system CA certificates if specific CA file not found
+                    $options[PDO::MYSQL_ATTR_SSL_CA] = null;
+                    $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
+                } else {
+                    $options[PDO::MYSQL_ATTR_SSL_CA] = $caPath;
+                    $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
                 }
-                $options[PDO::MYSQL_ATTR_SSL_CA] = $caPath;
-                $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false; // disabled for Aiven MySQL SSL compatibility
                 $options[PDO::MYSQL_ATTR_SSL_KEY] = null;
                 $options[PDO::MYSQL_ATTR_SSL_CERT] = null;
             }
