@@ -19,9 +19,10 @@ WORKDIR /var/www/html
 # Copy application code
 COPY . /var/www/html/
 
-# Set proper permissions
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html/uploads
+# Create uploads directory structure and set permissions
+RUN mkdir -p /var/www/html/public/uploads/{assignments,submissions} \
+    && chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html/public/uploads
 
 # Configure Apache to serve from public directory
 RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf \
