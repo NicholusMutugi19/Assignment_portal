@@ -26,7 +26,7 @@ define('UPLOAD_DIR_ASSIGNMENTS','uploads/assignments/');
  * Application settings
  */
 define('APP_NAME',    'Assignment Portal');
-define('APP_URL',     'http://localhost:8000');
+define('APP_URL',     getenv('APP_URL') ?: 'http://localhost:8000');
 define('SESSION_NAME','ap_session');
 define('TIMEZONE',    'Africa/Nairobi');
 

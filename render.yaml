@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: assignment-portal
+    runtime: docker
+    plan: starter
+    buildCommand: docker build -t assignment-portal .
+    startCommand: docker run -p $PORT:80 assignment-portal
+    envVars:
+      - key: DB_HOST
+        value: mysql-cb961aa-nicholusmutugi19-22ac.a.aivencloud.com
+      - key: DB_PORT
+        value: 10033
+      - key: DB_NAME
+        value: defaultdb
+      - key: DB_USER
+        value: avnadmin
+      - key: DB_PASS
+        value: # ADD YOUR AIVEN PASSWORD HERE
+      - key: DB_SSL_MODE
+        value: REQUIRED
+      - key: APP_URL
+        value: https://assignment-portal.onrender.com
+    healthCheckPath: /
+    disk:
+      name: uploads
+      mountPath: /var/www/html/uploads
+      sizeGB: 1</content>
+<parameter name="filePath">/home/nicdev/Documents/Vscode/assignment_portal/render.yaml
