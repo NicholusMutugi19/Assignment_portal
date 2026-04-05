@@ -1,10 +1,5 @@
 /* ============================================================
-   Assignment Portal — app.css
-   Design: Refined dark-academic with vibrant status accents
-   Fonts: Syne (display) + Inter (body)
-   ============================================================ */
-
-/* ── CSS Variables ─────────────────────────────────────────── */
+  /* ── CSS Variables ─────────────────────────────────────────── */
 :root {
   --bg:          #0d0f14;
   --bg-card:     #13161e;
@@ -496,9 +491,7 @@ select option { background: var(--bg-card2); }
 .auth-page {
   display: flex; align-items: center; justify-content: center;
   min-height: 100vh;
-  background: radial-gradient(ellipse at 30% 40%, rgba(108,99,255,.12) 0%, transparent 60%),
-              radial-gradient(ellipse at 70% 70%, rgba(0,212,170,.08) 0%, transparent 60%),
-              var(--bg);
+  background: var(--bg);
 }
 .auth-card {
   background: var(--bg-card);

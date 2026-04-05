@@ -25,19 +25,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (User::findByEmail($email)) {
         $error = 'An account with that email already exists.';
     } else {
-        $userId = User::create(compact('name','email','password','role'));
+        try {
+            $userId = User::create(compact('name','email','password','role'));
 
-        // Log the user in automatically
-        $_SESSION['user_id'] = $userId;
-        $_SESSION['user_role'] = $role;
+            // Log the user in automatically
+            $_SESSION['user_id'] = $userId;
+            $_SESSION['user_role'] = $role;
 
-        // Redirect to course selection
-        if ($role === 'student') {
-            header('Location: /student/courses.php');
-        } else {
-            header('Location: /lecturer/select_courses.php');
+            // Redirect to course selection
+            if ($role === 'student') {
+                header('Location: /student/courses.php');
+            } else {
+                header('Location: /lecturer/select_courses.php');
+            }
+            exit;
+        } catch (Exception $e) {
+            $error = 'Failed to create account. Please try again later.';
         }
-        exit;
     }
 }
 ?>

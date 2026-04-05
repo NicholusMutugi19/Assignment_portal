@@ -5,6 +5,7 @@
  */
 
 require_once __DIR__ . '/database.php';
+require_once __DIR__ . '/../middleware/ErrorHandler.php';
 
 class Database
 {
@@ -16,7 +17,7 @@ class Database
     public static function getInstance(): PDO
     {
         if (self::$instance === null) {
-            // Validate critical environment variables
+            // Validate critical environment variables - log details, show generic message
             if (empty(DB_HOST) || empty(DB_NAME) || empty(DB_USER)) {
                 $missing = [];
                 if (empty(DB_HOST)) { $missing[] = 'DB_HOST'; }
@@ -24,7 +25,7 @@ class Database
                 if (empty(DB_USER)) { $missing[] = 'DB_USER'; }
                 $message = 'DB connection config invalid, missing: ' . implode(', ', $missing);
                 error_log($message);
-                throw new PDOException($message);
+                throw new PDOException('Database configuration error');
             }
 
             $dsn = sprintf('mysql:host=%s;port=%d;dbname=%s;charset=%s', DB_HOST, DB_PORT, DB_NAME, DB_CHARSET);
@@ -44,15 +45,15 @@ class Database
             try {
                 self::$instance = new PDO($dsn, DB_USER, DB_PASS, $options);
             } catch (PDOException $e) {
-                $msg = 'DB Connection failed: ' . $e->getMessage();
-                error_log($msg);
+                // Log full error details server-side
+                error_log('DB Connection failed: ' . $e->getMessage());
 
-                // Detailed message during debug mode (set APP_ENV=development in Render for diagnostics)
-                if (getenv('APP_ENV') === 'development') {
-                    die(json_encode(['error' => $msg]));
-                }
-
-                die(json_encode(['error' => 'Database connection failed.']));
+                // Return user-friendly error via ErrorHandler
+                ErrorHandler::renderErrorPage(
+                    $e,
+                    'Database Connection Error',
+                    'Unable to connect to the database. Please try again later or contact support if the problem persists.'
+                );
             }
         }
         return self::$instance;
