@@ -14,7 +14,11 @@ if (!$sub) { header('Location: /lecturer/submissions.php'); exit; }
 
 // Handle grade update
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!Auth::verifyCsrf($_POST['csrf_token'] ?? '')) die('CSRF error');
+    if (!Auth::verifyCsrf($_POST['csrf_token'] ?? '')) {
+    $_SESSION['flash_error'] = 'Invalid security token. Please refresh the page and try again.';
+    header('Location: /lecturer/submissions.php');
+    exit;
+}
     $score    = (float)$_POST['score'];
     $feedback = trim($_POST['feedback'] ?? '');
     Submission::grade($id, $score, $feedback, (int)$user['id']);

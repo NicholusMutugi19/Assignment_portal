@@ -11,7 +11,9 @@ $user = Auth::user();
 // Handle grade update (CRUD: Update)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['grade_submission'])) {
     if (!Auth::verifyCsrf($_POST['csrf_token'] ?? '')) {
-        die('CSRF validation failed');
+        $_SESSION['flash_error'] = 'Invalid security token. Please refresh the page and try again.';
+        header('Location: ' . $_SERVER['REQUEST_URI']);
+        exit;
     }
     $subId    = (int)$_POST['submission_id'];
     $score    = (float)$_POST['score'];

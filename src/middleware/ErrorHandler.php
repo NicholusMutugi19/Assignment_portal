@@ -65,9 +65,6 @@ class ErrorHandler
         $message = $userMessage ?? self::getDefaultUserMessage($e);
         $title = $title ?? 'Error';
 
-        // If we're in development mode, show more details
-        $isDev = getenv('APP_ENV') === 'development';
-
         ?>
         <!DOCTYPE html>
         <html lang="en">
@@ -89,14 +86,7 @@ class ErrorHandler
                     <h1 class="auth-title"><?= htmlspecialchars($title) ?></h1>
                     <p class="auth-subtitle"><?= htmlspecialchars($message) ?></p>
 
-                    <?php if ($isDev): ?>
-                        <div class="alert alert-warning" style="font-size: 0.75rem; text-align: left;">
-                            <strong>Debug Info:</strong><br>
-                            <?= nl2br(htmlspecialchars($e->getMessage())) ?><br>
-                            <small>File: <?= htmlspecialchars($e->getFile()) ?>:<?= $e->getLine() ?></small>
-                        </div>
-                    <?php endif; ?>
-
+                    
                     <div style="margin-top: 1.5rem; text-align: center;">
                         <a href="javascript:history.back()" class="btn btn-ghost">
                             <i class="fa fa-arrow-left"></i> Go Back
