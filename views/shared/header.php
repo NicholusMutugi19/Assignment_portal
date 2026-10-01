@@ -81,7 +81,7 @@
         <?php endif; ?>
       <?php else: ?>
         <li><a href="/student/dashboard.php"><i class="fa fa-gauge"></i> Dashboard</a></li>
-        <li><a href="/student/courses.php"><i class="fa fa-book"></i> My Courses</a></li>
+        <li><a href="/student/courses.php"><i class="fa fa-book"></i> Course Catalog</a></li>
         <li><a href="/student/assignments.php"><i class="fa fa-book-open"></i> Assignments</a></li>
         <li><a href="/student/submissions.php"><i class="fa fa-file-arrow-up"></i> My Submissions</a></li>
         <?php if (PORTAL_EXTENSIONS_ENABLED): ?>

@@ -59,9 +59,20 @@ $flash = $_SESSION['flash'] ?? null;
 unset($_SESSION['flash']);
 ?>
 <?php include __DIR__ . '/../../views/shared/header.php'; ?>
-<div class="page-header"><div><h1 class="page-title">Available Courses</h1><p class="page-subtitle">Choose courses for your level. Paid course resources unlock only after M-Pesa confirms payment.</p></div></div>
-<?php if ($errors): ?><div class="alert alert-error"><ul><?php foreach ($errors as $error): ?><li><?= htmlspecialchars($error) ?></li><?php endforeach; ?></ul></div><?php endif; ?>
-<div class="course-selection-grid">
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Available Courses</h1>
+    <p class="page-subtitle">Find courses for your level. Course access starts after approval, and paid materials unlock after confirmed M-Pesa payment.</p>
+  </div>
+  <div class="page-actions">
+    <?php if (EDUCATION_COURSE_TARGETING_ENABLED): ?><a class="btn btn-ghost" href="/student/education.php"><i class="fa fa-graduation-cap"></i> Education Profile</a><?php endif; ?>
+    <a class="btn btn-secondary" href="/student/dashboard.php"><i class="fa fa-arrow-left"></i> Dashboard</a>
+  </div>
+</div>
+<?php if ($errors): ?><div class="alert alert-error"><i class="fa fa-circle-exclamation"></i><ul><?php foreach ($errors as $error): ?><li><?= htmlspecialchars($error) ?></li><?php endforeach; ?></ul></div><?php endif; ?>
+<?php if ($flash): ?><div class="alert alert-<?= htmlspecialchars($flash['type']) ?>"><i class="fa fa-circle-check"></i> <?= htmlspecialchars($flash['message']) ?></div><?php endif; ?>
+<div class="course-catalog-intro"><i class="fa fa-circle-info"></i><span>Application and payment status are shown on each course card. Existing enrollment history is retained.</span></div>
+<?php if (!$courses): ?><div class="card empty-state"><div class="empty-state-icon"><i class="fa fa-book-open"></i></div><h2>No courses available</h2><p>There are no published courses matching your education level right now.</p></div><?php else: ?><div class="course-selection-grid">
 <?php foreach ($courses as $course):
     $id = (int)$course['id'];
     $isPaid = PORTAL_EXTENSIONS_ENABLED && $course['price'] !== null && (float)$course['price'] > 0;
@@ -102,5 +113,5 @@ unset($_SESSION['flash']);
   <?php endif; ?>
 </div></div>
 <?php endforeach; ?>
-</div>
+</div><?php endif; ?>
 <?php include __DIR__ . '/../../views/shared/footer.php'; ?>
