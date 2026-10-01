@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../../src/config/database.php'; require_once __DIR__ . '/../../src/config/Database.php';
 require_once __DIR__ . '/../../src/middleware/Auth.php'; require_once __DIR__ . '/../../src/models/User.php';
-if (!PORTAL_EXTENSIONS_ENABLED) { http_response_code(503); exit('Results are disabled.'); }
+if (!PORTAL_EXTENSIONS_ENABLED) { http_response_code(503); exit('Results are disabled until the required migration is applied.'); }
 $user=Auth::user(); if (!$user['id'] || !in_array($user['role'],['lecturer','tutor'],true)) { header('Location: /auth/login.php?error=unauthorized'); exit; }
 if ($user['role']==='lecturer' && User::approvalStatus((int)$user['id'])!=='approved') { header('Location: /lecturer/pending_approval.php'); exit; }
 $courses=User::manageableCourseAssignments((int)$user['id']); $courseId=(int)($_GET['course_id']??($courses[0]['id']??0));
@@ -31,10 +31,13 @@ $courseFilter = EDUCATION_COURSE_TARGETING_ENABLED ? ' AND c.id = :course_id2' :
 $scoreSubquery = PORTAL_EXTENSIONS_ENABLED
  ? 'JOIN submissions s ON s.assignment_id=a.id AND s.student_id=u.id AND s.score IS NOT NULL'
  : "JOIN submissions s ON s.assignment_id=a.id AND s.student_id=u.id AND s.score IS NOT NULL AND s.status = 'graded'";
+$applicationFilter = PORTAL_EXTENSIONS_ENABLED ? " AND e.application_status='approved'" : '';
+$paymentFilter = PORTAL_EXTENSIONS_ENABLED ? " AND (COALESCE(c.price,0)=0 OR EXISTS (SELECT 1 FROM payments paid WHERE paid.student_id=u.id AND paid.course_id=c.id AND paid.payment_status='success'))" : '';
 $courseWhere = PORTAL_EXTENSIONS_ENABLED
- ? " WHERE c.id=:course_id AND e.application_status='approved' AND (COALESCE(c.price,0)=0 OR EXISTS (SELECT 1 FROM payments paid WHERE paid.student_id=u.id AND paid.course_id=c.id AND paid.payment_status='success'))"
+ ? ' WHERE c.id=:course_id'
  : ' WHERE c.id=:course_id';
 $educationColumn = EDUCATION_COURSE_TARGETING_ENABLED ? 'u.education_level' : 'NULL AS education_level';
+$groupColumns = EDUCATION_COURSE_TARGETING_ENABLED ? 'u.id,u.name,u.email,u.education_level' : 'u.id,u.name,u.email';
 $rows=Database::query("SELECT u.id AS student_id,u.name AS student_name,u.email," . $educationColumn . ",
  SUM(s.score) AS total_score,SUM(a.max_score) AS max_score,
  CASE WHEN SUM(a.max_score)>0 THEN ROUND(100*SUM(s.score)/SUM(a.max_score),2) ELSE NULL END AS percentage,
@@ -43,8 +46,8 @@ $rows=Database::query("SELECT u.id AS student_id,u.name AS student_name,u.email,
  JOIN courses c ON c.id=e.course_id
  JOIN assignments a ON a.course_id=c.id AND a.status='published'
  ".$scoreSubquery."
-".$courseWhere.$eligibility.$courseFilter.
- " GROUP BY u.id,u.name,u.email," . (EDUCATION_COURSE_TARGETING_ENABLED ? 'u.education_level' : 'u.id') . " ORDER BY percentage DESC,u.name ASC",EDUCATION_COURSE_TARGETING_ENABLED ? [':course_id'=>$courseId,':course_id2'=>$courseId] : [':course_id'=>$courseId])->fetchAll();
+".$courseWhere.$applicationFilter.$paymentFilter.$eligibility.$courseFilter.
+ " GROUP BY " . $groupColumns . " ORDER BY percentage DESC,u.name ASC",EDUCATION_COURSE_TARGETING_ENABLED ? [':course_id'=>$courseId,':course_id2'=>$courseId] : [':course_id'=>$courseId])->fetchAll();
 foreach($rows as $i=>&$row) $row['rank']=$i+1; unset($row);
 if (PORTAL_EXTENSIONS_ENABLED) {
   $rowCount = count($rows);

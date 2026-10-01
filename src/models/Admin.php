@@ -182,6 +182,7 @@ class Admin
 
     public static function suspendCourse(int $adminId, int $courseId): void
     {
+        if (!PORTAL_EXTENSIONS_ENABLED) throw new RuntimeException('Admin tools are disabled.');
         $before = Database::query('SELECT id, code, title, status FROM courses WHERE id = :id', [':id' => $courseId])->fetch();
         if (!$before) throw new RuntimeException('Course not found.');
         Database::query("UPDATE courses SET status = 'suspended' WHERE id = :id", [':id' => $courseId]);
@@ -190,6 +191,7 @@ class Admin
 
     public static function setCourseStatus(int $adminId, int $courseId, string $status): void
     {
+        if (!PORTAL_EXTENSIONS_ENABLED) throw new RuntimeException('Admin tools are disabled.');
         if (!in_array($status, ['published', 'suspended'], true)) throw new InvalidArgumentException('Invalid course status.');
         $before = Database::query('SELECT id, code, title, status FROM courses WHERE id = :id', [':id' => $courseId])->fetch();
         if (!$before) throw new RuntimeException('Course not found.');
@@ -199,6 +201,7 @@ class Admin
 
     public static function securitySummary(): array
     {
+        if (!PORTAL_EXTENSIONS_ENABLED) return ['suspended_users' => 0, 'pending_payments' => 0, 'failed_callbacks' => 0, 'audit_events_24h' => 0, 'unmatched_paid_enrollments' => 0];
         $paymentMetrics = PORTAL_EXTENSIONS_ENABLED ? [
             'pending_payments' => (int)Database::query("SELECT COUNT(*) FROM payments WHERE payment_status = 'pending'")->fetchColumn(),
             'failed_callbacks' => (int)Database::query("SELECT COUNT(*) FROM payment_callback_inbox WHERE processing_status = 'pending' AND attempts > 0")->fetchColumn(),

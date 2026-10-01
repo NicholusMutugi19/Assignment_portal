@@ -7,6 +7,9 @@ require_once __DIR__ . '/../../src/models/Admin.php';
 
 Auth::requireRole('student', '/auth/login.php');
 $user = Auth::user();
+if (PORTAL_EXTENSIONS_ENABLED && Admin::setting('maintenance_mode', '0') === '1') {
+  http_response_code(503); header('Retry-After: 300'); exit('Course applications are paused during maintenance.');
+}
 if (PORTAL_EXTENSIONS_ENABLED && Admin::setting('student_course_applications_enabled', '1') !== '1') {
   http_response_code(503);
   exit('New course applications are temporarily paused.');

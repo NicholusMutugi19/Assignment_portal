@@ -36,5 +36,6 @@ define('EDUCATION_COURSE_TARGETING_ENABLED', filter_var(
 ));
 define('PORTAL_EXTENSIONS_ENABLED', filter_var(getenv('PORTAL_EXTENSIONS_ENABLED') ?: 'false', FILTER_VALIDATE_BOOLEAN));
 define('MPESA_ENABLED', PORTAL_EXTENSIONS_ENABLED && filter_var(getenv('MPESA_ENABLED') ?: 'false', FILTER_VALIDATE_BOOLEAN));
+define('MAINTENANCE_MODE', filter_var(getenv('MAINTENANCE_MODE') ?: 'false', FILTER_VALIDATE_BOOLEAN));
 
 date_default_timezone_set(TIMEZONE);

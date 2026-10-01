@@ -95,6 +95,7 @@ class Assignment
 
     public static function isOnline(int $assignmentId): bool
     {
+        if (!PORTAL_EXTENSIONS_ENABLED) return false;
         return (bool)Database::query(
             "SELECT id FROM assignments WHERE id = :id AND assignment_type = 'online'",
             [':id' => $assignmentId]

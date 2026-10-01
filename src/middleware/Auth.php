@@ -19,6 +19,11 @@ class Auth
     public static function requireLogin(string $redirectTo = '../auth/login.php'): void
     {
         self::start();
+        if (MAINTENANCE_MODE && ($_SESSION['user_role'] ?? '') !== 'admin' && basename($_SERVER['SCRIPT_NAME'] ?? '') !== 'maintenance.php') {
+            http_response_code(503);
+            header('Retry-After: 300');
+            exit('The portal is temporarily unavailable for maintenance. Please try again shortly.');
+        }
         if (empty($_SESSION['user_id'])) {
             header('Location: ' . $redirectTo);
             exit;

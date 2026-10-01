@@ -12,6 +12,10 @@ if (!PORTAL_EXTENSIONS_ENABLED || !MPESA_ENABLED || Admin::setting('payments_ena
     http_response_code(503);
     exit('Course payments are not enabled.');
 }
+if (MAINTENANCE_MODE || Admin::setting('maintenance_mode', '0') === '1') {
+    http_response_code(503);
+    exit('Payments are paused during maintenance.');
+}
 if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !Auth::verifyCsrf($_POST['csrf_token'] ?? '')) {
     http_response_code(400);
     exit('Invalid request.');

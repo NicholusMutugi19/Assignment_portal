@@ -6,6 +6,11 @@ require_once __DIR__ . '/../../src/models/User.php';
 require_once __DIR__ . '/../../src/models/Admin.php';
 
 Auth::start();
+if (MAINTENANCE_MODE) {
+  http_response_code(503);
+  header('Retry-After: 300');
+  exit('The portal is temporarily unavailable for maintenance.');
+}
 if (PORTAL_EXTENSIONS_ENABLED && Admin::setting('new_registrations_enabled', '1') !== '1') {
   http_response_code(503);
   exit('New registrations are temporarily disabled.');

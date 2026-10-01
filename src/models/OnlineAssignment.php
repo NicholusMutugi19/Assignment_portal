@@ -6,6 +6,7 @@ class OnlineAssignment
 {
     public static function create(int $courseId, int $lecturerId, int $creatorId, array $data, array $questions): int
     {
+        if (!PORTAL_EXTENSIONS_ENABLED) throw new RuntimeException('Online assignments are disabled until the feature migration is enabled.');
         if (!$questions) throw new InvalidArgumentException('Add at least one question.');
         $pdo = Database::getInstance();
         $pdo->beginTransaction();
@@ -60,6 +61,7 @@ class OnlineAssignment
 
     public static function questionsForStudent(int $assignmentId): array
     {
+        if (!PORTAL_EXTENSIONS_ENABLED) return [];
         $questions = Database::query(
             'SELECT id, question_text, question_type, points, position FROM assignment_questions WHERE assignment_id = :id ORDER BY position',
             [':id' => $assignmentId]
@@ -76,6 +78,7 @@ class OnlineAssignment
 
     public static function responsesForSubmission(int $submissionId): array
     {
+        if (!PORTAL_EXTENSIONS_ENABLED) return [];
         return Database::query(
             "SELECT q.id AS question_id, q.question_text, q.question_type, q.points,
                     r.response_text, r.selected_option_ids, r.awarded_score,

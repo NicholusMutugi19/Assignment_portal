@@ -6,6 +6,7 @@ class ClassSession
 {
     public static function create(int $courseId, int $ownerId, array $data): int
     {
+        if (!PORTAL_EXTENSIONS_ENABLED) throw new RuntimeException('Class sessions are disabled until the feature migration is enabled.');
         if (!User::canManageCourse($ownerId, $courseId)) throw new RuntimeException('Course access denied.');
         $url = filter_var($data['meet_link'], FILTER_VALIDATE_URL);
         $host = strtolower((string)parse_url((string)$url, PHP_URL_HOST));
@@ -38,6 +39,7 @@ class ClassSession
 
     public static function forManager(int $ownerId): array
     {
+        if (!PORTAL_EXTENSIONS_ENABLED) return [];
         $tutorColumn = PORTAL_EXTENSIONS_ENABLED ? 'c.tutor_id = :tutor_id' : 'c.lecturer_id = :tutor_id';
         return PORTAL_EXTENSIONS_ENABLED
             ? Database::query(
@@ -54,6 +56,7 @@ class ClassSession
 
     public static function forStudent(int $studentId): array
     {
+        if (!PORTAL_EXTENSIONS_ENABLED) return [];
         $audience = EDUCATION_COURSE_TARGETING_ENABLED
             ? " AND (c.audience = 'both' OR (" .
                 "EXISTS (SELECT 1 FROM users student WHERE student.id = :level_student_id AND student.education_level = 'campus') AND c.audience = 'campus_only') OR (" .
