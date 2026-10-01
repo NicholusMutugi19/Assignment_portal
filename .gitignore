@@ -1,0 +1,21 @@
+# Old git folders
+.git_broken/
+.git_bad/
+*.orig
+
+# Environment / secrets
+.env
+.env.*
+*.env
+!.env.example
+
+# Dependencies
+node_modules/
+vendor/
+
+# Logs / build
+*.log
+storage/logs/*
+.DS_Store
+.idea/
+.vscode/
