@@ -11,8 +11,7 @@ INSERT IGNORE INTO portal_settings (setting_key, setting_value) VALUES
 ('maintenance_mode', '0'),
 ('new_registrations_enabled', '1'),
 ('student_course_applications_enabled', '1'),
-('payments_enabled', '0'),
-('education_targeting_enabled', '0');
+('payments_enabled', '0');
 
 CREATE TABLE IF NOT EXISTS application_history (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

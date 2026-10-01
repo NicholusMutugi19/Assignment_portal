@@ -5,7 +5,6 @@ require_once __DIR__ . '/../../src/middleware/Auth.php';
 require_once __DIR__ . '/../../src/models/Assignment.php';
 require_once __DIR__ . '/../../src/models/User.php';
 require_once __DIR__ . '/../../src/models/Submission.php';
-require_once __DIR__ . '/../../src/models/Admin.php';
 
 Auth::requireLogin('/auth/login.php');
 $user        = Auth::user();
@@ -36,7 +35,7 @@ unset($_SESSION['flash']);
   </div>
   <div class="page-actions">
     <a href="/lecturer/courses.php" class="btn btn-secondary"><i class="fa fa-book"></i> My Courses</a>
-    <?php if ($user['role'] === 'lecturer'): ?><a href="/lecturer/select_courses.php" class="btn btn-secondary"><i class="fa fa-list"></i> Teaching Catalog</a><?php endif; ?>
+    <?php if ($user['role'] === 'lecturer' && !PORTAL_EXTENSIONS_ENABLED): ?><a href="/lecturer/select_courses.php" class="btn btn-secondary"><i class="fa fa-list"></i> Teaching Catalog</a><?php endif; ?>
     <a href="/lecturer/create_assignment.php" class="btn btn-primary"><i class="fa fa-plus"></i> New Assignment</a>
     <?php if (PORTAL_EXTENSIONS_ENABLED): ?>
       <a href="/lecturer/create_online_assignment.php" class="btn btn-secondary"><i class="fa fa-list-check"></i> Online Assignment</a>

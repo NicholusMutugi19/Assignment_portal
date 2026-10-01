@@ -68,6 +68,21 @@ class Admin
         ];
     }
 
+    public static function ensureBootstrapTables(): void
+    {
+        Database::query("CREATE TABLE IF NOT EXISTS portal_settings (
+            setting_key VARCHAR(100) PRIMARY KEY,
+            setting_value VARCHAR(1000) NOT NULL,
+            updated_by INT UNSIGNED NULL,
+            updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB");
+        Database::query("INSERT IGNORE INTO portal_settings (setting_key, setting_value) VALUES
+            ('maintenance_mode', '0'),
+            ('new_registrations_enabled', '1'),
+            ('student_course_applications_enabled', '1'),
+            ('payments_enabled', '0')");
+    }
+
     public static function pendingLecturers(): array
     {
         if (!PORTAL_EXTENSIONS_ENABLED) return [];
@@ -99,6 +114,33 @@ class Admin
             if ($pdo->inTransaction()) $pdo->rollBack();
             throw $e;
         }
+    }
+
+    public static function provisionFirstAdminFromEnvironment(): int
+    {
+        $email = strtolower(trim((string)getenv('BOOTSTRAP_ADMIN_EMAIL')));
+        $name = trim((string)getenv('BOOTSTRAP_ADMIN_NAME'));
+        $password = (string)getenv('BOOTSTRAP_ADMIN_PASSWORD');
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL) || $name === '' || strlen($password) < 16) {
+            throw new RuntimeException('Bootstrap admin env values are missing or invalid.');
+        }
+        self::ensureBootstrapTables();
+        $adminCount = (int)Database::query("SELECT COUNT(*) FROM users WHERE role = 'admin'")->fetchColumn();
+        if ($adminCount > 0) throw new RuntimeException('Admin users already exist; bootstrap is disabled.');
+        $existing = Database::query('SELECT id FROM users WHERE email = :email', [':email' => $email])->fetchColumn();
+        if ($existing) throw new RuntimeException('The requested bootstrap email already belongs to an account. No account was modified.');
+        if (defined('PORTAL_EXTENSIONS_ENABLED') && PORTAL_EXTENSIONS_ENABLED) {
+            Database::query(
+                "INSERT INTO users (name, email, password, role, account_status, lecturer_approval_status)
+                 VALUES (:name, :email, :password, 'admin', 'active', NULL)",
+                [':name' => $name, ':email' => $email, ':password' => password_hash($password, PASSWORD_DEFAULT)]
+            );
+        } else {
+            throw new RuntimeException('Apply the portal role-extension migration before provisioning the first admin.');
+        }
+        $id = (int)Database::query('SELECT id FROM users WHERE email = :email', [':email' => $email])->fetchColumn();
+        error_log('Bootstrap administrator provisioned from environment.');
+        return $id;
     }
 
     public static function users(string $search, string $role, int $page, int $pageSize = 25): array

@@ -8,7 +8,7 @@ if (Auth::isLoggedIn()) {
     $role = Auth::user()['role'];
     $destination = match ($role) {
         'admin' => '/admin/',
-        'tutor' => '/lecturer/courses.php',
+        'tutor' => '/lecturer/dashboard.php',
         default => '/' . $role . '/dashboard.php',
     };
     header('Location: ' . $destination);

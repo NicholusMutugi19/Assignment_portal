@@ -31,6 +31,11 @@ $availableCourses = [
 Auth::requireRole('lecturer', '/auth/login.php');
 $user = Auth::user();
 
+if (PORTAL_EXTENSIONS_ENABLED) {
+  header('Location: /lecturer/courses.php');
+  exit;
+}
+
 // Get lecturer's currently taught courses
 $taughtCourses = User::taughtCourses((int)$user['id']);
 $taughtCourseIds = array_column($taughtCourses, 'id');

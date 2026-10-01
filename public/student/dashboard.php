@@ -6,6 +6,7 @@ require_once __DIR__ . '/../../src/models/Assignment.php';
 require_once __DIR__ . '/../../src/models/Submission.php';
 require_once __DIR__ . '/../../src/models/User.php';
 require_once __DIR__ . '/../../src/models/ClassSession.php';
+require_once __DIR__ . '/../../src/models/Admin.php';
 
 Auth::requireRole('student', '/auth/login.php');
 $user        = Auth::user();
@@ -13,6 +14,8 @@ $assignments = Assignment::forStudent((int)$user['id']);
 $submissions = Submission::forStudent((int)$user['id']);
 $courses     = User::enrolledCourses((int)$user['id']);
 $upcomingSessions = PORTAL_EXTENSIONS_ENABLED ? ClassSession::forStudent((int)$user['id']) : [];
+$applications = PORTAL_EXTENSIONS_ENABLED ? User::courseApplicationStatuses((int)$user['id']) : [];
+$pendingApplications = count(array_filter($applications, fn($application) => $application['application_status'] === 'pending'));
 
 $pending   = count(array_filter($assignments, fn($a) => !$a['submission_id'] && $a['display_status'] === 'pending'));
 $submitted = count(array_filter($assignments, fn($a) => $a['submission_id'] && $a['submission_status'] !== 'graded'));
@@ -35,7 +38,11 @@ unset($_SESSION['flash']);
   <a href="/student/courses.php" class="btn btn-secondary">
     <i class="fa fa-edit"></i> Manage Courses
   </a>
+  <?php if (EDUCATION_COURSE_TARGETING_ENABLED): ?><a href="/student/education.php" class="btn btn-ghost"><i class="fa fa-graduation-cap"></i> Education Profile</a><?php endif; ?>
+  <?php if (PORTAL_EXTENSIONS_ENABLED): ?><a href="/student/results.php" class="btn btn-ghost"><i class="fa fa-ranking-star"></i> My Results</a><a href="/student/payments.php" class="btn btn-ghost"><i class="fa fa-money-bill-wave"></i> Payments</a><?php endif; ?>
 </div>
+
+<?php if ($pendingApplications > 0): ?><div class="alert alert-info"><i class="fa fa-hourglass-half"></i> <?= $pendingApplications ?> course application<?= $pendingApplications === 1 ? '' : 's' ?> awaiting lecturer/tutor review.<?php if (PORTAL_EXTENSIONS_ENABLED): ?> Paid course materials remain unavailable until approval and payment confirmation.<?php endif; ?></div><?php endif; ?>
 
 <?php if ($upcomingSessions): ?>
 <div class="card"><div class="card-header"><h2 class="card-title"><i class="fa fa-video text-accent"></i> Upcoming classes</h2></div><div class="table-wrap"><table><thead><tr><th>Course</th><th>Session</th><th>Time</th><th>Join</th></tr></thead><tbody><?php foreach ($upcomingSessions as $session): ?><tr><td><?= htmlspecialchars($session['course_code'].' — '.$session['course_title']) ?></td><td><?= htmlspecialchars($session['title']) ?><?php if (!empty($session['tutor_name'])): ?><br><small>Tutor: <?= htmlspecialchars($session['tutor_name']) ?></small><?php endif; ?></td><td><?= htmlspecialchars(date('M j, Y H:i', strtotime($session['scheduled_at']))) ?></td><td><a class="btn btn-primary btn-sm" href="<?= htmlspecialchars($session['meet_link'], ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer">Join Meet</a></td></tr><?php endforeach; ?></tbody></table></div></div>

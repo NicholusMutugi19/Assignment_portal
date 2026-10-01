@@ -134,9 +134,9 @@ class Auth
         require_once __DIR__ . '/../models/User.php';
 
         if ($user['role'] === 'student') {
-            // Check if student has any enrollments
-            $enrollments = User::enrolledCourses((int)$user['id']);
-            return !empty($enrollments);
+            // Pending/rejected requests still count as a completed selection
+            // step; do not trap applicants in the course-selection redirect.
+            return User::hasCourseApplications((int)$user['id']);
         } elseif ($user['role'] === 'lecturer') {
             // Check if lecturer has any courses they're teaching
             $courses = User::taughtCourses((int)$user['id']);

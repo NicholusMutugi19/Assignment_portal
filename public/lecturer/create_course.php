@@ -5,9 +5,9 @@ require_once __DIR__ . '/../../src/middleware/Auth.php';
 require_once __DIR__ . '/../../src/models/User.php';
 
 Auth::requireRole('lecturer', '/auth/login.php');
-if (!EDUCATION_COURSE_TARGETING_ENABLED) {
+if (!PORTAL_EXTENSIONS_ENABLED) {
     http_response_code(503);
-    exit('Course creation is not enabled until the education and course-audience migration has been applied.');
+  exit('Course creation is not enabled until the course feature migration has been applied.');
 }
 $user = Auth::user();
 $errors = [];
@@ -20,7 +20,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $audience = $_POST['audience'] ?? '';
     if (!preg_match('/^[A-Z0-9][A-Z0-9_-]{1,19}$/', $code)) $errors[] = 'Use a unique course code with 2–20 letters, numbers, hyphens, or underscores.';
     if ($title === '' || mb_strlen($title) > 200) $errors[] = 'Course title is required and must be 200 characters or fewer.';
-    if (!in_array($audience, ['campus_only', 'high_school_only', 'both'], true)) $errors[] = 'Choose a valid student audience.';
+    if (EDUCATION_COURSE_TARGETING_ENABLED && !in_array($audience, ['campus_only', 'high_school_only', 'both'], true)) $errors[] = 'Choose a valid student audience.';
+    if (!EDUCATION_COURSE_TARGETING_ENABLED) $audience = 'both';
     foreach (['category' => 120, 'duration' => 120, 'tutor_name' => 120] as $field => $limit) {
         if (mb_strlen(trim($_POST[$field] ?? '')) > $limit) $errors[] = ucfirst(str_replace('_', ' ', $field)) . " must be {$limit} characters or fewer.";
     }
@@ -62,7 +63,7 @@ $pageTitle = 'Create Course';
       <div class="form-group"><label for="title">Course title</label><input id="title" name="title" maxlength="200" required value="<?= htmlspecialchars($_POST['title'] ?? '') ?>"></div>
     </div>
     <div class="form-group"><label for="description">Description</label><textarea id="description" name="description" rows="4"><?= htmlspecialchars($_POST['description'] ?? '') ?></textarea></div>
-    <div class="form-row">
+    <?php if (EDUCATION_COURSE_TARGETING_ENABLED): ?><div class="form-row">
       <div class="form-group"><label for="audience">Available to</label><select id="audience" name="audience" required>
         <option value="">Choose student level</option>
         <option value="campus_only" <?= ($_POST['audience'] ?? '') === 'campus_only' ? 'selected' : '' ?>>Campus students only</option>
@@ -70,7 +71,7 @@ $pageTitle = 'Create Course';
         <option value="both" <?= ($_POST['audience'] ?? '') === 'both' ? 'selected' : '' ?>>Both levels</option>
       </select></div>
       <div class="form-group"><label for="category">Category</label><input id="category" name="category" maxlength="120" value="<?= htmlspecialchars($_POST['category'] ?? '') ?>"></div>
-    </div>
+    </div><?php else: ?><input type="hidden" name="audience" value="both"><?php endif; ?>
     <div class="form-row">
       <div class="form-group"><label for="duration">Duration</label><input id="duration" name="duration" maxlength="120" placeholder="e.g. 8 weeks" value="<?= htmlspecialchars($_POST['duration'] ?? '') ?>"></div>
       <div class="form-group"><label for="tutor-name">Tutor name (optional)</label><input id="tutor-name" name="tutor_name" maxlength="120" value="<?= htmlspecialchars($_POST['tutor_name'] ?? '') ?>"></div>

@@ -114,6 +114,27 @@ class User
         }
     }
 
+    /** True when a student has any course request, even if it is still pending. */
+    public static function hasCourseApplications(int $studentId): bool
+    {
+        $sql = PORTAL_EXTENSIONS_ENABLED
+            ? 'SELECT 1 FROM enrollments WHERE student_id = :student_id LIMIT 1'
+            : 'SELECT 1 FROM enrollments WHERE student_id = :student_id LIMIT 1';
+        return (bool)Database::query($sql, [':student_id' => $studentId])->fetch();
+    }
+
+    public static function courseApplicationStatuses(int $studentId): array
+    {
+        if (!PORTAL_EXTENSIONS_ENABLED) return [];
+        return Database::query(
+            'SELECT e.course_id, e.application_status, e.access_status, e.application_note,
+                    e.application_reviewed_at, c.price
+             FROM enrollments e JOIN courses c ON c.id = e.course_id
+             WHERE e.student_id = :student_id',
+            [':student_id' => $studentId]
+        )->fetchAll();
+    }
+
     /** Courses taught by a lecturer */
     public static function taughtCourses(int $lecturerId): array
     {
@@ -173,11 +194,14 @@ class User
         // Keep a priced course visible so the student can initiate payment;
         // resource access is independently gated in assignment/session queries.
         $enrollmentStatus = '';
+        $catalogJoin = 'JOIN users student ON student.id = :sid';
+        $studentLevel = EDUCATION_COURSE_TARGETING_ENABLED ? 'student.education_level' : 'NULL AS education_level';
+        $audienceColumn = EDUCATION_COURSE_TARGETING_ENABLED ? ', c.audience' : '';
         return Database::query(
-            "SELECT c.*, lecturer.name AS lecturer_name, student.education_level
+            "SELECT c.*, lecturer.name AS lecturer_name, " . $studentLevel . $audienceColumn . "
              FROM courses c
              JOIN users lecturer ON lecturer.id = c.lecturer_id
-             JOIN users student ON student.id = :sid
+             " . $catalogJoin . "
              WHERE c.status = 'published'" . $eligibilityFilter . $enrollmentStatus . '
              ORDER BY c.code, c.title',
             [':sid' => $studentId]
@@ -242,22 +266,26 @@ class User
 
     public static function createLecturerCourse(int $lecturerId, array $data): int
     {
-        Database::query(
-            "INSERT INTO courses (code, title, description, lecturer_id, audience, status, category, duration, prerequisites, syllabus, tutor_name)
-             VALUES (:code, :title, :description, :lecturer_id, :audience, 'draft', :category, :duration, :prerequisites, :syllabus, :tutor_name)",
-            [
-                ':code' => strtoupper(trim($data['code'])),
-                ':title' => trim($data['title']),
-                ':description' => trim($data['description']) ?: null,
-                ':lecturer_id' => $lecturerId,
-                ':audience' => $data['audience'],
-                ':category' => trim($data['category']) ?: null,
-                ':duration' => trim($data['duration']) ?: null,
-                ':prerequisites' => trim($data['prerequisites']) ?: null,
-                ':syllabus' => trim($data['syllabus']) ?: null,
-                ':tutor_name' => trim($data['tutor_name']) ?: null,
-            ]
-        );
+        if (!PORTAL_EXTENSIONS_ENABLED) throw new RuntimeException('Custom course creation is not enabled.');
+        $columns = EDUCATION_COURSE_TARGETING_ENABLED
+            ? '(code, title, description, lecturer_id, audience, status, category, duration, prerequisites, syllabus, tutor_name)'
+            : '(code, title, description, lecturer_id, status, category, duration, prerequisites, syllabus, tutor_name)';
+        $values = EDUCATION_COURSE_TARGETING_ENABLED
+            ? '(:code, :title, :description, :lecturer_id, :audience, \'draft\', :category, :duration, :prerequisites, :syllabus, :tutor_name)'
+            : '(:code, :title, :description, :lecturer_id, \'draft\', :category, :duration, :prerequisites, :syllabus, :tutor_name)';
+        $params = [
+            ':code' => strtoupper(trim($data['code'])),
+            ':title' => trim($data['title']),
+            ':description' => trim($data['description']) ?: null,
+            ':lecturer_id' => $lecturerId,
+            ':category' => trim($data['category']) ?: null,
+            ':duration' => trim($data['duration']) ?: null,
+            ':prerequisites' => trim($data['prerequisites']) ?: null,
+            ':syllabus' => trim($data['syllabus']) ?: null,
+            ':tutor_name' => trim($data['tutor_name']) ?: null,
+        ];
+        if (EDUCATION_COURSE_TARGETING_ENABLED) $params[':audience'] = $data['audience'];
+        Database::query('INSERT INTO courses ' . $columns . ' VALUES ' . $values, $params);
         return (int) Database::getInstance()->lastInsertId();
     }
 
@@ -288,18 +316,27 @@ class User
         )->fetch();
     }
 
-    public static function updateCourseSettings(int $lecturerId, int $courseId, string $audience, string $status, ?float $price): bool
+    public static function updateCourseSettings(int $lecturerId, int $courseId, ?string $audience, string $status, ?float $price): bool
     {
-        if (!in_array($audience, ['campus_only', 'high_school_only', 'both'], true)
-            || !in_array($status, ['draft', 'published'], true)
-            || ($price !== null && ($price < 0 || $price > 1000000))) {
+        if (!in_array($status, ['draft', 'published'], true)
+            || ($price !== null && ($price < 0 || $price > 1000000))
+            || (EDUCATION_COURSE_TARGETING_ENABLED && !in_array($audience, ['campus_only', 'high_school_only', 'both'], true))) {
             throw new InvalidArgumentException('Invalid course settings.');
         }
-        $stmt = Database::query(
-            "UPDATE courses SET audience = :audience, status = :status, price = :price
-             WHERE id = :id AND lecturer_id = :lecturer_id AND status != 'suspended'",
-            [':audience' => $audience, ':status' => $status, ':price' => $price, ':id' => $courseId, ':lecturer_id' => $lecturerId]
-        );
+
+        if (EDUCATION_COURSE_TARGETING_ENABLED) {
+            $stmt = Database::query(
+                "UPDATE courses SET audience = :audience, status = :status, price = :price
+                 WHERE id = :id AND lecturer_id = :lecturer_id AND status != 'suspended'",
+                [':audience' => $audience, ':status' => $status, ':price' => $price, ':id' => $courseId, ':lecturer_id' => $lecturerId]
+            );
+        } else {
+            $stmt = Database::query(
+                "UPDATE courses SET status = :status, price = :price
+                 WHERE id = :id AND lecturer_id = :lecturer_id AND status != 'suspended'",
+                [':status' => $status, ':price' => $price, ':id' => $courseId, ':lecturer_id' => $lecturerId]
+            );
+        }
         return $stmt->rowCount() > 0 || (bool)Database::query(
             "SELECT id FROM courses WHERE id = :id AND lecturer_id = :lecturer_id AND status != 'suspended'",
             [':id' => $courseId, ':lecturer_id' => $lecturerId]

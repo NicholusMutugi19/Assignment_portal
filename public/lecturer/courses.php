@@ -54,14 +54,12 @@ unset($_SESSION['flash']);
     <a href="/lecturer/class_sessions.php" class="btn btn-secondary"><i class="fa fa-video"></i> Class Sessions</a>
     <?php endif; ?>
     <?php else: ?>
-    <?php if (EDUCATION_COURSE_TARGETING_ENABLED): ?>
+    <?php if (PORTAL_EXTENSIONS_ENABLED): ?>
     <a href="/lecturer/create_course.php" class="btn btn-primary">
       <i class="fa fa-plus"></i> Create Course
     </a>
     <?php endif; ?>
-    <a href="/lecturer/select_courses.php" class="btn btn-secondary">
-      <i class="fa fa-edit"></i> Manage Courses
-    </a>
+    <?php if (!PORTAL_EXTENSIONS_ENABLED): ?><a href="/lecturer/select_courses.php" class="btn btn-secondary"><i class="fa fa-edit"></i> Manage Teaching Catalog</a><?php endif; ?>
     <a href="/lecturer/create_assignment.php" class="btn btn-primary">
       <i class="fa fa-plus"></i> Create Assignment
     </a>
@@ -97,7 +95,7 @@ unset($_SESSION['flash']);
         <tr>
           <th>Course Code</th>
           <th>Course Title</th>
-          <?php if (EDUCATION_COURSE_TARGETING_ENABLED && PORTAL_EXTENSIONS_ENABLED && $user['role'] === 'lecturer'): ?><th>Audience / Status / Fee</th><?php endif; ?>
+          <?php if (PORTAL_EXTENSIONS_ENABLED && $user['role'] === 'lecturer'): ?><th><?= EDUCATION_COURSE_TARGETING_ENABLED ? 'Audience / Status / Fee' : 'Status / Fee' ?></th><?php endif; ?>
           <?php if (PORTAL_EXTENSIONS_ENABLED && $user['role'] === 'lecturer'): ?><th>Assigned tutor</th><?php endif; ?>
           <th>Students</th>
           <th>Assignments</th>
@@ -116,16 +114,16 @@ unset($_SESSION['flash']);
           <td>
             <div class="fw-700"><?= htmlspecialchars($course['title']) ?></div>
           </td>
-          <?php if (EDUCATION_COURSE_TARGETING_ENABLED && PORTAL_EXTENSIONS_ENABLED && $user['role'] === 'lecturer'): ?>
+          <?php if (PORTAL_EXTENSIONS_ENABLED && $user['role'] === 'lecturer'): ?>
           <td>
             <form method="POST" action="/lecturer/manage_course.php" style="display:flex;gap:.4rem;align-items:center">
               <input type="hidden" name="csrf_token" value="<?= Auth::csrfToken() ?>">
               <input type="hidden" name="course_id" value="<?= (int)$course['id'] ?>">
-              <select name="audience" aria-label="Course audience">
+              <?php if (EDUCATION_COURSE_TARGETING_ENABLED): ?><select name="audience" aria-label="Course audience">
                 <?php foreach (['campus_only' => 'Campus only', 'high_school_only' => 'High School only', 'both' => 'Both levels'] as $value => $label): ?>
                   <option value="<?= $value ?>" <?= ($course['audience'] ?? 'both') === $value ? 'selected' : '' ?>><?= $label ?></option>
                 <?php endforeach; ?>
-              </select>
+              </select><?php else: ?><input type="hidden" name="audience" value="both"><?php endif; ?>
               <select name="status" aria-label="Course status">
                 <?php foreach (['draft' => 'Draft', 'published' => 'Published'] as $value => $label): ?>
                   <option value="<?= $value ?>" <?= ($course['status'] ?? 'published') === $value ? 'selected' : '' ?>><?= $label ?></option>

@@ -1,5 +1,6 @@
 /* ============================================================
-  /* ── CSS Variables ─────────────────────────────────────────── */
+    Assignment Portal — design tokens
+  ============================================================ */
 :root {
   --bg:          #0d0f14;
   --bg-card:     #13161e;
@@ -35,6 +36,7 @@
 
   --nav-h:       64px;
   --sidebar-w:   240px;
+  --sidebar-max-w: min(320px, 86vw);
 
   --font-head:   'Syne', sans-serif;
   --font-body:   'Inter', sans-serif;
@@ -186,6 +188,7 @@ a:hover { opacity: .8; }
   border-left-color: var(--accent);
 }
 .sidebar-nav a i { width: 16px; text-align: center; }
+.sidebar-nav a { min-height: 44px; }
 
 .sidebar-divider {
   height: 1px;
@@ -628,7 +631,7 @@ select option { background: var(--bg-card2); }
     position: fixed;
     top: var(--nav-h);
     right: 0;
-    width: var(--sidebar-w);
+    width: var(--sidebar-max-w);
     height: calc(100vh - var(--nav-h));
     z-index: 1000;
     transform: translateX(100%);

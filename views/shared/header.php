@@ -49,7 +49,7 @@
       <?php if ($user['role'] === 'lecturer'): ?>
         <li><a href="/lecturer/dashboard.php"><i class="fa fa-gauge"></i> Dashboard</a></li>
         <li><a href="/lecturer/courses.php"><i class="fa fa-book"></i> My Courses</a></li>
-        <li><a href="/lecturer/select_courses.php"><i class="fa fa-list"></i> Teaching Catalog</a></li>
+        <?php if (!PORTAL_EXTENSIONS_ENABLED): ?><li><a href="/lecturer/select_courses.php"><i class="fa fa-list"></i> Teaching Catalog</a></li><?php endif; ?>
         <li><a href="/lecturer/create_assignment.php"><i class="fa fa-plus-circle"></i> New Assignment</a></li>
         <li><a href="/lecturer/assignments.php"><i class="fa fa-list-check"></i> Assignments</a></li>
         <li><a href="/lecturer/submissions.php"><i class="fa fa-inbox"></i> All Submissions</a></li>

@@ -23,6 +23,10 @@ if (EDUCATION_COURSE_TARGETING_ENABLED) {
 }
 $courses = User::availableCourses((int)$user['id']);
 $enrolled = array_map('intval', array_column(User::enrolledCourses((int)$user['id']), 'id'));
+$applications = [];
+foreach (User::courseApplicationStatuses((int)$user['id']) as $applicationRow) {
+  $applications[(int)$applicationRow['course_id']] = $applicationRow;
+}
 $paid = PORTAL_EXTENSIONS_ENABLED ? array_map('intval', array_column(Database::query(
     "SELECT DISTINCT course_id FROM payments WHERE student_id = :sid AND payment_status = 'success'",
     [':sid' => (int)$user['id']]
@@ -34,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['free_course_id'])) {
   } else {
     try {
       User::saveStudentCourseSelections((int)$user['id'], [(int)$_POST['free_course_id']]);
-      $_SESSION['flash'] = ['type' => 'success', 'message' => 'You are enrolled.'];
+      $_SESSION['flash'] = ['type' => 'success', 'message' => PORTAL_EXTENSIONS_ENABLED ? 'Your application has been submitted; course staff will review it.' : 'You are enrolled.'];
       header('Location: /student/courses.php');
       exit;
     } catch (Throwable $e) {
@@ -64,9 +68,14 @@ unset($_SESSION['flash']);
   <div class="course-lecturer">Lecturer: <?= htmlspecialchars($course['lecturer_name']) ?><?php if (!empty($course['tutor_name'])): ?> | Tutor: <?= htmlspecialchars($course['tutor_name']) ?><?php endif; ?></div>
   <?php if (EDUCATION_COURSE_TARGETING_ENABLED): ?><div class="course-lecturer">Audience: <?= htmlspecialchars(str_replace('_', ' ', $course['audience'])) ?></div><?php endif; ?>
   <?php if ($isPaid): ?><p class="fw-700">Fee: KES <?= number_format((float)$course['price'], 2) ?></p><?php endif; ?>
-  <?php if ($isPaidByStudent): ?>
+  <?php if (PORTAL_EXTENSIONS_ENABLED && ($applications[$id]['application_status'] ?? '') === 'pending'): ?>
+    <span class="badge badge-warning">Application pending approval</span>
+  <?php elseif (PORTAL_EXTENSIONS_ENABLED && ($applications[$id]['application_status'] ?? '') === 'rejected'): ?>
+    <span class="badge badge-danger">Application rejected<?= !empty($applications[$id]['application_note']) ? ': ' . htmlspecialchars($applications[$id]['application_note']) : '' ?></span>
+    <form method="POST" action="/student/courses.php"><input type="hidden" name="csrf_token" value="<?= Auth::csrfToken() ?>"><input type="hidden" name="free_course_id" value="<?= $id ?>"><button class="btn btn-secondary" type="submit">Reapply</button></form>
+  <?php elseif ($isPaidByStudent): ?>
     <span class="badge badge-success">Payment confirmed · resources unlocked</span>
-  <?php elseif ($isPaid && MPESA_ENABLED): ?>
+  <?php elseif ($isPaid && MPESA_ENABLED && (!PORTAL_EXTENSIONS_ENABLED || ($applications[$id]['application_status'] ?? '') === 'approved')): ?>
     <form method="POST" action="/student/checkout.php" style="margin-top:.75rem">
       <input type="hidden" name="csrf_token" value="<?= Auth::csrfToken() ?>">
       <input type="hidden" name="course_id" value="<?= $id ?>">
@@ -74,6 +83,9 @@ unset($_SESSION['flash']);
       <button class="btn btn-primary" type="submit"><i class="fa fa-mobile-screen"></i> <?= $isEnrolled ? 'Pay' : 'Enroll & pay' ?> KES <?= number_format((float)$course['price'], 0) ?></button>
       <p class="form-hint">Course resources remain locked until payment confirmation.</p>
     </form>
+  <?php elseif ($isPaid && PORTAL_EXTENSIONS_ENABLED && empty($applications[$id])): ?>
+    <form method="POST" action="/student/courses.php"><input type="hidden" name="csrf_token" value="<?= Auth::csrfToken() ?>"><input type="hidden" name="free_course_id" value="<?= $id ?>"><button class="btn btn-primary" type="submit">Apply for course</button></form>
+    <p class="form-hint">Payment becomes available after the lecturer or tutor approves your application.</p>
   <?php elseif ($isPaid): ?>
     <span class="badge badge-warning">Payment unavailable at this time</span>
   <?php elseif ($isEnrolled): ?>

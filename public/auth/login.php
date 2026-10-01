@@ -19,7 +19,7 @@ if (Auth::isLoggedIn()) {
     exit;
   }
   if ($currentUser['role'] === 'tutor') {
-    header('Location: /lecturer/courses.php');
+    header('Location: /lecturer/dashboard.php');
     exit;
   }
   if (PORTAL_EXTENSIONS_ENABLED && $currentUser['role'] === 'lecturer'
@@ -67,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               exit;
             }
             if ($user['role'] === 'tutor') {
-              header('Location: /lecturer/courses.php');
+              header('Location: /lecturer/dashboard.php');
               exit;
             }
 
