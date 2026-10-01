@@ -22,6 +22,11 @@ if (Auth::isLoggedIn()) {
     header('Location: /lecturer/dashboard.php');
     exit;
   }
+  if ($currentUser['role'] === 'lecturer' && PORTAL_EXTENSIONS_ENABLED
+      && User::approvalStatus((int)$currentUser['id']) !== 'approved') {
+    header('Location: /lecturer/pending_approval.php');
+    exit;
+  }
   if (PORTAL_EXTENSIONS_ENABLED && $currentUser['role'] === 'lecturer'
     && User::approvalStatus((int)$currentUser['id']) !== 'approved') {
     header('Location: /lecturer/pending_approval.php');
@@ -44,7 +49,7 @@ if (Auth::isLoggedIn()) {
         }
     } else {
         $role = Auth::user()['role'];
-        header('Location: /' . $role . '/dashboard.php');
+      header('Location: ' . ($role === 'admin' ? '/admin/' : '/' . $role . '/dashboard.php'));
     }
     exit;
 }
@@ -94,7 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     header('Location: /lecturer/select_courses.php');
                 }
             } else {
-                header('Location: /' . $user['role'] . '/dashboard.php');
+              header('Location: ' . ($user['role'] === 'admin' ? '/admin/' : '/' . $user['role'] . '/dashboard.php'));
             }
             exit;
         } else {

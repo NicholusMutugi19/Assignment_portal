@@ -8,6 +8,7 @@ require_once __DIR__ . '/../../src/models/Submission.php';
 
 Auth::requireLogin('/auth/login.php');
 $user        = Auth::user();
+if ($user['role'] === 'admin') { header('Location: /admin/'); exit; }
 if (!in_array($user['role'], ['lecturer', 'tutor'], true)) { http_response_code(403); exit('Forbidden.'); }
 if ($user['role'] === 'lecturer' && PORTAL_EXTENSIONS_ENABLED && User::approvalStatus((int)$user['id']) !== 'approved') {
   header('Location: /lecturer/pending_approval.php');

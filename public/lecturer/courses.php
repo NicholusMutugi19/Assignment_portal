@@ -7,6 +7,7 @@ require_once __DIR__ . '/../../src/models/Assignment.php';
 
 Auth::requireLogin('/auth/login.php');
 $user    = Auth::user();
+if ($user['role'] === 'admin') { header('Location: /admin/'); exit; }
 if (!in_array($user['role'], ['lecturer', 'tutor'], true)) {
   http_response_code(403);
   exit('Forbidden.');
