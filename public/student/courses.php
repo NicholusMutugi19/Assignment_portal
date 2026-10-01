@@ -37,7 +37,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['free_course_id'])) {
         $errors[] = 'Invalid security token. Refresh and try again.';
   } else {
     try {
-      User::saveStudentCourseSelections((int)$user['id'], [(int)$_POST['free_course_id']]);
+      $courseId = (int)$_POST['free_course_id'];
+      $targetSql = PORTAL_EXTENSIONS_ENABLED ? 'SELECT id, price FROM courses WHERE id = :course_id' : 'SELECT id, NULL AS price FROM courses WHERE id = :course_id';
+      $target = Database::query($targetSql, [':course_id' => $courseId])->fetch();
+      if (!$target) throw new InvalidArgumentException('Selected course was not found.');
+      if (PORTAL_EXTENSIONS_ENABLED && (float)($target['price'] ?? 0) > 0) {
+        throw new InvalidArgumentException('This course requires a payment request; use its Pay action.');
+      }
+      User::saveStudentCourseSelections((int)$user['id'], [$courseId]);
       $_SESSION['flash'] = ['type' => 'success', 'message' => PORTAL_EXTENSIONS_ENABLED ? 'Your application has been submitted; course staff will review it.' : 'You are enrolled.'];
       header('Location: /student/courses.php');
       exit;

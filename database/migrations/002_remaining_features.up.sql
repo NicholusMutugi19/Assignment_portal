@@ -1,7 +1,8 @@
 -- Additive schema for payments/access control, lecturer approvals, class sessions,
 -- online assignments, ranking publication and administration.
 -- Apply after migration 001 on a staging clone after taking a verified backup.
--- Existing enrollments remain active by default; existing lecturer accounts are approved.
+-- Existing enrollments remain active and are explicitly backfilled approved;
+-- new enrollment applications are pending by default after migration 004.
 ALTER TABLE users
     MODIFY COLUMN role ENUM('student','lecturer','tutor','admin') NOT NULL DEFAULT 'student',
     ADD COLUMN account_status ENUM('active','suspended') NOT NULL DEFAULT 'active',
@@ -18,10 +19,12 @@ ALTER TABLE courses ADD CONSTRAINT fk_courses_tutor FOREIGN KEY (tutor_id) REFER
 ALTER TABLE enrollments
     ADD COLUMN access_status ENUM('active','pending_payment') NOT NULL DEFAULT 'active',
     ADD COLUMN access_granted_at DATETIME NULL,
-    ADD COLUMN application_status ENUM('pending','approved','rejected') NOT NULL DEFAULT 'approved',
+    ADD COLUMN application_status ENUM('pending','approved','rejected') NULL,
     ADD COLUMN application_reviewed_by INT UNSIGNED NULL,
     ADD COLUMN application_reviewed_at DATETIME NULL,
     ADD COLUMN application_note VARCHAR(500) NULL;
+UPDATE enrollments SET application_status = 'approved' WHERE application_status IS NULL;
+ALTER TABLE enrollments MODIFY COLUMN application_status ENUM('pending','approved','rejected') NOT NULL DEFAULT 'pending';
 ALTER TABLE enrollments
     ADD CONSTRAINT fk_enrollment_reviewed_by FOREIGN KEY (application_reviewed_by) REFERENCES users(id) ON DELETE SET NULL;
 CREATE INDEX idx_enrollment_applications ON enrollments (course_id, application_status, enrolled_at);

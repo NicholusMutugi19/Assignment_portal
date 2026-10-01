@@ -23,8 +23,8 @@ if (PORTAL_EXTENSIONS_ENABLED && !empty($_GET['assign_tutor']) && $_SERVER['REQU
     $tutorId = (int)($_POST['tutor_id'] ?? 0);
     $owned = Database::query('SELECT id FROM courses WHERE id = :course AND lecturer_id = :lecturer', [':course' => $courseId, ':lecturer' => (int)$user['id']])->fetch();
     $tutor = Database::query("SELECT id FROM users WHERE id = :id AND role = 'tutor' AND account_status = 'active'", [':id' => $tutorId])->fetch();
-    if ($owned && $tutor) {
-      Database::query('UPDATE courses SET tutor_id = :tutor WHERE id = :course AND lecturer_id = :lecturer', [':tutor' => $tutorId, ':course' => $courseId, ':lecturer' => (int)$user['id']]);
+    if ($owned && ($tutor || $tutorId === 0)) {
+      Database::query('UPDATE courses SET tutor_id = :tutor WHERE id = :course AND lecturer_id = :lecturer', [':tutor' => $tutorId ?: null, ':course' => $courseId, ':lecturer' => (int)$user['id']]);
       $_SESSION['flash'] = ['type' => 'success', 'message' => 'Tutor assigned to course.'];
     } else {
       $_SESSION['flash'] = ['type' => 'error', 'message' => 'Select one of your courses and an active tutor.'];

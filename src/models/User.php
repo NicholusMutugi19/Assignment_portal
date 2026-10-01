@@ -117,10 +117,10 @@ class User
     /** True when a student has any course request, even if it is still pending. */
     public static function hasCourseApplications(int $studentId): bool
     {
-        $sql = PORTAL_EXTENSIONS_ENABLED
-            ? 'SELECT 1 FROM enrollments WHERE student_id = :student_id LIMIT 1'
-            : 'SELECT 1 FROM enrollments WHERE student_id = :student_id LIMIT 1';
-        return (bool)Database::query($sql, [':student_id' => $studentId])->fetch();
+        return (bool)Database::query(
+            'SELECT 1 FROM enrollments WHERE student_id = :student_id LIMIT 1',
+            [':student_id' => $studentId]
+        )->fetch();
     }
 
     public static function courseApplicationStatuses(int $studentId): array
@@ -216,14 +216,16 @@ class User
             // Existing enrollments are intentionally never deleted by selection updates.
             foreach (array_unique(array_map('intval', $courseIds)) as $courseId) {
                 if (!EDUCATION_COURSE_TARGETING_ENABLED && !PORTAL_EXTENSIONS_ENABLED) {
-                    $course = Database::query('SELECT id, price FROM courses WHERE id = :cid', [':cid' => $courseId])->fetch();
+                    // Keep the legacy path valid before migration 002 adds course prices.
+                    $course = Database::query('SELECT id FROM courses WHERE id = :cid', [':cid' => $courseId])->fetch();
                 } else {
                     $eligibility = EDUCATION_COURSE_TARGETING_ENABLED ? " AND (student.education_level IS NULL
                         OR c.audience = 'both'
                         OR (student.education_level = 'campus' AND c.audience = 'campus_only')
                         OR (student.education_level = 'high_school' AND c.audience = 'high_school_only'))" : '';
+                    $priceColumn = PORTAL_EXTENSIONS_ENABLED ? 'c.price' : 'NULL AS price';
                     $course = Database::query(
-                        "SELECT c.id, c.price FROM courses c JOIN users student ON student.id = :sid
+                        "SELECT c.id, " . $priceColumn . " FROM courses c JOIN users student ON student.id = :sid
                          WHERE c.id = :cid AND c.status = 'published'" . $eligibility,
                         [':sid' => $studentId, ':cid' => $courseId]
                     )->fetch();
@@ -267,6 +269,11 @@ class User
     public static function createLecturerCourse(int $lecturerId, array $data): int
     {
         if (!PORTAL_EXTENSIONS_ENABLED) throw new RuntimeException('Custom course creation is not enabled.');
+        $code = strtoupper(trim($data['code']));
+        $title = trim($data['title']);
+        if (!preg_match('/^[A-Z0-9][A-Z0-9_-]{1,19}$/', $code) || $title === '' || mb_strlen($title) > 200) {
+            throw new InvalidArgumentException('Invalid course code or title.');
+        }
         $columns = EDUCATION_COURSE_TARGETING_ENABLED
             ? '(code, title, description, lecturer_id, audience, status, category, duration, prerequisites, syllabus, tutor_name)'
             : '(code, title, description, lecturer_id, status, category, duration, prerequisites, syllabus, tutor_name)';
@@ -274,8 +281,8 @@ class User
             ? '(:code, :title, :description, :lecturer_id, :audience, \'draft\', :category, :duration, :prerequisites, :syllabus, :tutor_name)'
             : '(:code, :title, :description, :lecturer_id, \'draft\', :category, :duration, :prerequisites, :syllabus, :tutor_name)';
         $params = [
-            ':code' => strtoupper(trim($data['code'])),
-            ':title' => trim($data['title']),
+            ':code' => $code,
+            ':title' => $title,
             ':description' => trim($data['description']) ?: null,
             ':lecturer_id' => $lecturerId,
             ':category' => trim($data['category']) ?: null,
@@ -291,6 +298,8 @@ class User
 
     public static function setCourseAudience(int $lecturerId, int $courseId, string $audience): bool
     {
+        if (!PORTAL_EXTENSIONS_ENABLED || !EDUCATION_COURSE_TARGETING_ENABLED) return false;
+        if (!EDUCATION_COURSE_TARGETING_ENABLED) return false;
         $stmt = Database::query(
             "UPDATE courses SET audience = :audience WHERE id = :id AND lecturer_id = :lecturer_id AND status != 'suspended'",
             [':audience' => $audience, ':id' => $courseId, ':lecturer_id' => $lecturerId]
@@ -303,6 +312,7 @@ class User
 
     public static function updateCoursePublication(int $lecturerId, int $courseId, string $status): bool
     {
+        if (!PORTAL_EXTENSIONS_ENABLED) return false;
         if (!in_array($status, ['draft', 'published'], true)) {
             throw new InvalidArgumentException('Invalid course publication status.');
         }
@@ -318,6 +328,7 @@ class User
 
     public static function updateCourseSettings(int $lecturerId, int $courseId, ?string $audience, string $status, ?float $price): bool
     {
+        if (!PORTAL_EXTENSIONS_ENABLED) throw new RuntimeException('Course fee controls are not enabled until the feature migration is applied.');
         if (!in_array($status, ['draft', 'published'], true)
             || ($price !== null && ($price < 0 || $price > 1000000))
             || (EDUCATION_COURSE_TARGETING_ENABLED && !in_array($audience, ['campus_only', 'high_school_only', 'both'], true))) {

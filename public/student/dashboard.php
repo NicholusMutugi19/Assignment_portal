@@ -16,6 +16,13 @@ $courses     = User::enrolledCourses((int)$user['id']);
 $upcomingSessions = PORTAL_EXTENSIONS_ENABLED ? ClassSession::forStudent((int)$user['id']) : [];
 $applications = PORTAL_EXTENSIONS_ENABLED ? User::courseApplicationStatuses((int)$user['id']) : [];
 $pendingApplications = count(array_filter($applications, fn($application) => $application['application_status'] === 'pending'));
+$paidCourseIds = PORTAL_EXTENSIONS_ENABLED ? array_map('intval', array_column(Database::query(
+  "SELECT DISTINCT course_id FROM payments WHERE student_id = :student_id AND payment_status = 'success'",
+  [':student_id' => (int)$user['id']]
+)->fetchAll(), 'course_id')) : [];
+$courseFeesDue = count(array_filter($applications, fn($application) => $application['application_status'] === 'approved'
+  && (float)($application['price'] ?? 0) > 0
+  && !in_array((int)$application['course_id'], $paidCourseIds, true)));
 
 $pending   = count(array_filter($assignments, fn($a) => !$a['submission_id'] && $a['display_status'] === 'pending'));
 $submitted = count(array_filter($assignments, fn($a) => $a['submission_id'] && $a['submission_status'] !== 'graded'));
@@ -43,6 +50,7 @@ unset($_SESSION['flash']);
 </div>
 
 <?php if ($pendingApplications > 0): ?><div class="alert alert-info"><i class="fa fa-hourglass-half"></i> <?= $pendingApplications ?> course application<?= $pendingApplications === 1 ? '' : 's' ?> awaiting lecturer/tutor review.<?php if (PORTAL_EXTENSIONS_ENABLED): ?> Paid course materials remain unavailable until approval and payment confirmation.<?php endif; ?></div><?php endif; ?>
+<?php if ($courseFeesDue > 0): ?><div class="alert alert-warning"><i class="fa fa-money-bill-wave"></i> <?= $courseFeesDue ?> approved paid course application<?= $courseFeesDue === 1 ? ' needs' : 's need' ?> payment before resources unlock. <a href="/student/courses.php">Go to courses</a></div><?php endif; ?>
 
 <?php if ($upcomingSessions): ?>
 <div class="card"><div class="card-header"><h2 class="card-title"><i class="fa fa-video text-accent"></i> Upcoming classes</h2></div><div class="table-wrap"><table><thead><tr><th>Course</th><th>Session</th><th>Time</th><th>Join</th></tr></thead><tbody><?php foreach ($upcomingSessions as $session): ?><tr><td><?= htmlspecialchars($session['course_code'].' — '.$session['course_title']) ?></td><td><?= htmlspecialchars($session['title']) ?><?php if (!empty($session['tutor_name'])): ?><br><small>Tutor: <?= htmlspecialchars($session['tutor_name']) ?></small><?php endif; ?></td><td><?= htmlspecialchars(date('M j, Y H:i', strtotime($session['scheduled_at']))) ?></td><td><a class="btn btn-primary btn-sm" href="<?= htmlspecialchars($session['meet_link'], ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer">Join Meet</a></td></tr><?php endforeach; ?></tbody></table></div></div>
