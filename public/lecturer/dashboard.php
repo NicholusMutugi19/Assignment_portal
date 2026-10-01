@@ -5,11 +5,17 @@ require_once __DIR__ . '/../../src/middleware/Auth.php';
 require_once __DIR__ . '/../../src/models/Assignment.php';
 require_once __DIR__ . '/../../src/models/User.php';
 require_once __DIR__ . '/../../src/models/Submission.php';
+require_once __DIR__ . '/../../src/models/Admin.php';
 
-Auth::requireRole('lecturer', '/auth/login.php');
+Auth::requireLogin('/auth/login.php');
 $user        = Auth::user();
-$assignments = Assignment::forLecturer((int)$user['id']);
-$courses     = User::taughtCourses((int)$user['id']);
+if (!in_array($user['role'], ['lecturer', 'tutor'], true)) { http_response_code(403); exit('Forbidden.'); }
+if ($user['role'] === 'lecturer' && PORTAL_EXTENSIONS_ENABLED && User::approvalStatus((int)$user['id']) !== 'approved') {
+  header('Location: /lecturer/pending_approval.php');
+  exit;
+}
+$assignments = PORTAL_EXTENSIONS_ENABLED ? Assignment::managedBy((int)$user['id']) : Assignment::forLecturer((int)$user['id']);
+$courses     = PORTAL_EXTENSIONS_ENABLED ? User::manageableCourseAssignments((int)$user['id']) : User::taughtCourses((int)$user['id']);
 
 // Aggregate stats
 $totalAssignments  = count($assignments);
@@ -17,7 +23,7 @@ $totalSubmissions  = array_sum(array_column($assignments, 'total_submissions'));
 $pendingGrading    = array_sum(array_column($assignments, 'total_submissions')) - array_sum(array_column($assignments, 'graded_count'));
 $openAssignments   = count(array_filter($assignments, fn($a) => $a['status'] === 'published' && strtotime($a['deadline']) > time()));
 
-$pageTitle = 'Lecturer Dashboard';
+$pageTitle = $user['role'] === 'tutor' ? 'Tutor Dashboard' : 'Lecturer Dashboard';
 $flash = $_SESSION['flash'] ?? null;
 unset($_SESSION['flash']);
 ?>
@@ -26,11 +32,19 @@ unset($_SESSION['flash']);
 <div class="page-header">
   <div>
     <h1 class="page-title">Welcome back, <?= htmlspecialchars(explode(' ', $user['name'])[0]) ?> 👋</h1>
-    <p class="page-subtitle">You are teaching <?= count($courses) ?> course<?= count($courses) !== 1 ? 's' : '' ?></p>
+    <p class="page-subtitle">You manage <?= count($courses) ?> course<?= count($courses) !== 1 ? 's' : '' ?></p>
   </div>
-  <a href="/lecturer/create_assignment.php" class="btn btn-primary">
-    <i class="fa fa-plus"></i> New Assignment
-  </a>
+  <div class="page-actions">
+    <a href="/lecturer/courses.php" class="btn btn-secondary"><i class="fa fa-book"></i> My Courses</a>
+    <?php if ($user['role'] === 'lecturer'): ?><a href="/lecturer/select_courses.php" class="btn btn-secondary"><i class="fa fa-list"></i> Teaching Catalog</a><?php endif; ?>
+    <a href="/lecturer/create_assignment.php" class="btn btn-primary"><i class="fa fa-plus"></i> New Assignment</a>
+    <?php if (PORTAL_EXTENSIONS_ENABLED): ?>
+      <a href="/lecturer/create_online_assignment.php" class="btn btn-secondary"><i class="fa fa-list-check"></i> Online Assignment</a>
+      <a href="/lecturer/applications.php" class="btn btn-secondary"><i class="fa fa-user-check"></i> Applications</a>
+      <a href="/lecturer/class_sessions.php" class="btn btn-secondary"><i class="fa fa-video"></i> Sessions</a>
+      <a href="/lecturer/results.php" class="btn btn-secondary"><i class="fa fa-ranking-star"></i> Results</a>
+    <?php endif; ?>
+  </div>
 </div>
 
 <!-- Stats -->

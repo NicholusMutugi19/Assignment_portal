@@ -97,7 +97,7 @@ unset($_SESSION['flash']);
         <tr>
           <th>Course Code</th>
           <th>Course Title</th>
-          <?php if (EDUCATION_COURSE_TARGETING_ENABLED && $user['role'] === 'lecturer'): ?><th>Audience / Status / Fee</th><?php endif; ?>
+          <?php if (EDUCATION_COURSE_TARGETING_ENABLED && PORTAL_EXTENSIONS_ENABLED && $user['role'] === 'lecturer'): ?><th>Audience / Status / Fee</th><?php endif; ?>
           <?php if (PORTAL_EXTENSIONS_ENABLED && $user['role'] === 'lecturer'): ?><th>Assigned tutor</th><?php endif; ?>
           <th>Students</th>
           <th>Assignments</th>
@@ -116,7 +116,7 @@ unset($_SESSION['flash']);
           <td>
             <div class="fw-700"><?= htmlspecialchars($course['title']) ?></div>
           </td>
-          <?php if (EDUCATION_COURSE_TARGETING_ENABLED && $user['role'] === 'lecturer'): ?>
+          <?php if (EDUCATION_COURSE_TARGETING_ENABLED && PORTAL_EXTENSIONS_ENABLED && $user['role'] === 'lecturer'): ?>
           <td>
             <form method="POST" action="/lecturer/manage_course.php" style="display:flex;gap:.4rem;align-items:center">
               <input type="hidden" name="csrf_token" value="<?= Auth::csrfToken() ?>">

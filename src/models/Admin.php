@@ -47,7 +47,7 @@ class Admin
 
     public static function updateSetting(int $adminId, string $key, string $value): void
     {
-        $allowed = ['maintenance_mode', 'new_registrations_enabled', 'student_course_applications_enabled', 'payments_enabled', 'education_targeting_enabled'];
+        $allowed = ['maintenance_mode', 'new_registrations_enabled', 'student_course_applications_enabled', 'payments_enabled'];
         if (!in_array($key, $allowed, true) || !in_array($value, ['0','1'], true)) throw new InvalidArgumentException('Invalid site setting.');
         $before = self::setting($key, '0');
         Database::query(
