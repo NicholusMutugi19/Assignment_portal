@@ -168,7 +168,7 @@ class Assignment
              JOIN   users         student ON student.id = e.student_id
              JOIN   users         u ON u.id  = a.lecturer_id
              LEFT JOIN submissions s ON s.assignment_id = a.id AND s.student_id = :sid2
-             WHERE  a.status != 'draft'" . $eligibilityFilter . $studentAccess . $applicationAccess . $paymentAccess . '
+             WHERE  a.status != 'draft'" . $eligibilityFilter . $studentAccess . $paymentAccess . '
              ORDER  BY a.deadline ASC',
             PORTAL_EXTENSIONS_ENABLED
                 ? [':sid' => $studentId, ':sid2' => $studentId, ':payment_student_id' => $studentId]
