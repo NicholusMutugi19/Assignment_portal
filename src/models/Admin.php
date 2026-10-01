@@ -38,6 +38,26 @@ class Admin
         ) ENGINE=InnoDB");
     }
 
+    public static function setting(string $key, string $default = ''): string
+    {
+        if (!PORTAL_EXTENSIONS_ENABLED) return $default;
+        $value = Database::query('SELECT setting_value FROM portal_settings WHERE setting_key = :key', [':key' => $key])->fetchColumn();
+        return $value === false ? $default : (string)$value;
+    }
+
+    public static function updateSetting(int $adminId, string $key, string $value): void
+    {
+        $allowed = ['maintenance_mode', 'new_registrations_enabled', 'student_course_applications_enabled', 'payments_enabled', 'education_targeting_enabled'];
+        if (!in_array($key, $allowed, true) || !in_array($value, ['0','1'], true)) throw new InvalidArgumentException('Invalid site setting.');
+        $before = self::setting($key, '0');
+        Database::query(
+            'INSERT INTO portal_settings (setting_key, setting_value, updated_by) VALUES (:key, :value, :admin_id)
+             ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), updated_by = VALUES(updated_by)',
+            [':key' => $key, ':value' => $value, ':admin_id' => $adminId]
+        );
+        self::audit($adminId, 'setting.update', 'setting', $key, ['value' => $before], ['value' => $value]);
+    }
+
     public static function stats(): array
     {
         return [
@@ -102,6 +122,7 @@ class Admin
 
     public static function updateUser(int $adminId, int $targetId, string $role, string $status): void
     {
+        if (!PORTAL_EXTENSIONS_ENABLED) throw new RuntimeException('Admin tools are disabled.');
         if (!in_array($role, ['student', 'lecturer', 'tutor', 'admin'], true) || !in_array($status, ['active', 'suspended'], true)) {
             throw new InvalidArgumentException('Invalid role or account status.');
         }
@@ -203,6 +224,14 @@ class Admin
         $checks['php_curl'] = function_exists('curl_init');
         $checks['php_openssl'] = extension_loaded('openssl');
         $checks['storage_writable'] = is_writable(__DIR__ . '/../../public/uploads/submissions');
+        if (PORTAL_EXTENSIONS_ENABLED) {
+            try {
+                Database::query('SELECT setting_key FROM portal_settings LIMIT 1');
+                $checks['portal_settings_table'] = true;
+            } catch (Throwable $e) {
+                $checks['portal_settings_table'] = false;
+            }
+        }
         return $checks;
     }
 
@@ -217,6 +246,7 @@ class Admin
 
     public static function deleteUser(int $adminId, int $userId): void
     {
+        if (!PORTAL_EXTENSIONS_ENABLED) throw new RuntimeException('Admin tools are disabled.');
         if ($adminId === $userId) throw new InvalidArgumentException('You cannot delete your own account.');
         $user = Database::query('SELECT id, name, email, role FROM users WHERE id = :id', [':id' => $userId])->fetch();
         if (!$user) throw new RuntimeException('User not found.');

@@ -366,6 +366,7 @@ class User
 
     public static function pendingCourseApplications(int $managerId): array
     {
+        if (!PORTAL_EXTENSIONS_ENABLED) return [];
         return Database::query(
             "SELECT e.student_id, e.course_id, e.enrolled_at, e.application_status, u.name AS student_name, u.email,
                     u.education_level, u.institution_name, u.year_or_form, c.code, c.title AS course_title

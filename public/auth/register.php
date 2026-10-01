@@ -3,8 +3,13 @@ require_once __DIR__ . '/../../src/config/database.php';
 require_once __DIR__ . '/../../src/config/Database.php';
 require_once __DIR__ . '/../../src/middleware/Auth.php';
 require_once __DIR__ . '/../../src/models/User.php';
+require_once __DIR__ . '/../../src/models/Admin.php';
 
 Auth::start();
+if (PORTAL_EXTENSIONS_ENABLED && Admin::setting('new_registrations_enabled', '1') !== '1') {
+  http_response_code(503);
+  exit('New registrations are temporarily disabled.');
+}
 if (Auth::isLoggedIn()) {
     header('Location: /' . Auth::user()['role'] . '/dashboard.php');
     exit;

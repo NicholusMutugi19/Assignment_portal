@@ -2,9 +2,10 @@
 require_once __DIR__ . '/../src/config/database.php';
 require_once __DIR__ . '/../src/config/Database.php';
 require_once __DIR__ . '/../src/models/Payment.php';
+require_once __DIR__ . '/../src/models/Admin.php';
 
 header('Content-Type: application/json');
-if (!MPESA_ENABLED) {
+if (!MPESA_ENABLED || !PORTAL_EXTENSIONS_ENABLED || Admin::setting('payments_enabled', '0') !== '1') {
     http_response_code(503);
     echo json_encode(['ResultCode' => 1, 'ResultDesc' => 'Payments disabled']);
     exit;

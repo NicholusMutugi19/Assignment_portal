@@ -4,10 +4,11 @@ require_once __DIR__ . '/../../src/config/Database.php';
 require_once __DIR__ . '/../../src/middleware/Auth.php';
 require_once __DIR__ . '/../../src/models/User.php';
 require_once __DIR__ . '/../../src/models/Payment.php';
+require_once __DIR__ . '/../../src/models/Admin.php';
 require_once __DIR__ . '/../../src/services/DarajaClient.php';
 
 Auth::requireRole('student', '/auth/login.php');
-if (!PORTAL_EXTENSIONS_ENABLED || !MPESA_ENABLED) {
+if (!PORTAL_EXTENSIONS_ENABLED || !MPESA_ENABLED || Admin::setting('payments_enabled', '0') !== '1') {
     http_response_code(503);
     exit('Course payments are not enabled.');
 }

@@ -34,6 +34,9 @@ try {
             if ($rawPrice !== '' && $price === false) throw new InvalidArgumentException('Invalid fee.');
             Admin::setCoursePrice($adminId, (int)($_POST['course_id'] ?? 0), $price === false ? null : $price);
             break;
+        case 'update_setting':
+            Admin::updateSetting($adminId, (string)($_POST['setting_key'] ?? ''), (string)($_POST['setting_value'] ?? ''));
+            break;
         case 'delete_user':
             Admin::deleteUser($adminId, (int)($_POST['user_id'] ?? 0));
             break;

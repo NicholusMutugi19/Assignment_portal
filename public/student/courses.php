@@ -3,9 +3,14 @@ require_once __DIR__ . '/../../src/config/database.php';
 require_once __DIR__ . '/../../src/config/Database.php';
 require_once __DIR__ . '/../../src/middleware/Auth.php';
 require_once __DIR__ . '/../../src/models/User.php';
+require_once __DIR__ . '/../../src/models/Admin.php';
 
 Auth::requireRole('student', '/auth/login.php');
 $user = Auth::user();
+if (PORTAL_EXTENSIONS_ENABLED && Admin::setting('student_course_applications_enabled', '1') !== '1') {
+  http_response_code(503);
+  exit('New course applications are temporarily paused.');
+}
 if (EDUCATION_COURSE_TARGETING_ENABLED) {
     $profile = User::educationProfile((int)$user['id']);
     if (!$profile || !$profile['education_level'] || !$profile['institution_name'] || !$profile['year_or_form']) {
