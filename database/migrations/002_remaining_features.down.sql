@@ -1,0 +1,5 @@
+-- Application rollback only. Disable payment/admin/session/online-assignment flags
+-- and restore the prior release. Do not DROP tables or columns here: production
+-- data (payments, answers, approval decisions, audits and enrolment access state)
+-- must be retained. Before any eventual physical removal, export and reconcile
+-- the data in a separately reviewed retention migration.

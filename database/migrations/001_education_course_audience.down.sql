@@ -1,0 +1,6 @@
+-- Safe rollback: roll back the application release and disable
+-- EDUCATION_COURSE_TARGETING_ENABLED. Leave these additive columns in place.
+-- This intentionally does not DROP columns: after the feature has collected
+-- education profiles or course metadata, dropping them would destroy user data.
+-- If physical removal is ever required, first export and verify every value,
+-- then schedule a separate reviewed data-retention migration.

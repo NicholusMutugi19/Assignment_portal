@@ -1,0 +1,13 @@
+# Block ALL PHP execution in this directory
+<FilesMatch "\.ph(p[2-9]?|tml|ar|ps)$">
+    Require all denied
+</FilesMatch>
+
+# Disable directory listing
+Options -Indexes
+
+# Force download for allowed file types (prevent inline XSS)
+<FilesMatch "\.(pdf|doc|docx|zip)$">
+    Header set Content-Disposition "attachment"
+    Header set X-Content-Type-Options "nosniff"
+</FilesMatch>

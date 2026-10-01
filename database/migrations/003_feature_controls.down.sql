@@ -1,0 +1,2 @@
+-- Application rollback only. Keep portal settings and application review history;
+-- they may already contain operator decisions. Do not drop user/business records.

@@ -1,0 +1,22 @@
+# Git
+.git
+.gitignore
+
+# VS Code
+.vscode
+
+# Documentation
+README.md
+docs/
+
+# Development files
+fiveserver.config.js
+test_*.php
+
+# Node modules (if any)
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db</content>
+<parameter name="filePath">/home/nicdev/Documents/Vscode/assignment_portal/.dockerignore
