@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   if (!Auth::verifyCsrf($_POST['csrf_token'] ?? '')) $errors[] = 'Invalid security token.';
   $courseId=(int)($_POST['course_id']??0); $title=trim($_POST['title']??''); $scheduled=trim($_POST['scheduled_at']??'');
   if (!User::canManageCourse((int)$user['id'],$courseId)) $errors[]='Course access denied.';
-  if ($title==='' || mb_strlen($title)>200) $errors[]='Session title is required (maximum 200 characters).';
+  if ($title==='' || strlen($title)>200) $errors[]='Session title is required (maximum 200 characters).';
   if (!$scheduled || strtotime($scheduled)<=time()) $errors[]='Choose a future session time.';
   if (!$errors) try { ClassSession::create($courseId,(int)$user['id'],['title'=>$title,'meet_link'=>trim($_POST['meet_link']??''),'scheduled_at'=>date('Y-m-d H:i:s',strtotime($scheduled)),'description'=>$_POST['description']??'','tutor_name'=>$_POST['tutor_name']??'']); $_SESSION['flash']=['type'=>'success','message'=>'Class session published for enrolled, paid students.']; header('Location: /lecturer/class_sessions.php'); exit; } catch(Throwable $e) { error_log('Session creation failed: '.$e->getMessage()); $errors[]=$e instanceof InvalidArgumentException?$e->getMessage():'Unable to create session.'; }
 }

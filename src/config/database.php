@@ -4,6 +4,42 @@
  * assignment_portal/src/config/database.php
  */
 
+if (!function_exists('load_env_file')) {
+    function load_env_file(string $path): void
+    {
+        if (!is_file($path)) {
+            return;
+        }
+
+        $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        if ($lines === false) {
+            return;
+        }
+
+        foreach ($lines as $line) {
+            $trimmed = trim($line);
+            if ($trimmed === '' || str_starts_with($trimmed, '#')) {
+                continue;
+            }
+
+            [$key, $value] = array_pad(explode('=', $trimmed, 2), 2, '');
+            $key = trim($key);
+            $value = trim($value);
+
+            if ($key === '') {
+                continue;
+            }
+
+            $value = preg_replace('/^(?:"|\')(.*)(?:"|\')$/', '$1', $value) ?? $value;
+            putenv($key . '=' . $value);
+            $_ENV[$key] = $value;
+            $_SERVER[$key] = $value;
+        }
+    }
+}
+
+load_env_file(dirname(__DIR__, 2) . '/.env');
+
 define('DB_HOST',     getenv('DB_HOST')     ?: '');
 define('DB_PORT',     getenv('DB_PORT')     ?: 3306);
 define('DB_NAME',     getenv('DB_NAME')     ?: '');

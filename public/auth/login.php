@@ -119,14 +119,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <link rel="stylesheet" href="/css/app.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
-<body>
+<body class="auth-body">
 <div class="auth-page">
   <div class="auth-card">
-    <div class="auth-logo">
-      <div class="auth-logo-icon">⬡</div>
+    <a class="auth-brand" href="/" aria-label="<?= htmlspecialchars(APP_NAME) ?> home">
+      <span class="auth-logo-icon">⬡</span>
+      <span><?= APP_NAME ?></span>
+    </a>
+    <div class="auth-heading">
+      <span class="auth-eyebrow">Welcome back</span>
+      <h1 class="auth-title">Sign in to your portal</h1>
+      <p class="auth-subtitle">Your courses and assignments are waiting.</p>
     </div>
-    <h1 class="auth-title"><?= APP_NAME ?></h1>
-    <p class="auth-subtitle">Sign in to access your dashboard</p>
 
     <?php if ($error): ?>
       <div class="alert alert-error">
@@ -145,27 +149,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <div class="alert alert-error"><i class="fa fa-ban"></i> This account is suspended. Contact an administrator.</div>
     <?php endif; ?>
 
-    <form method="POST" action="">
+    <form method="POST" action="" class="auth-form">
       <div class="form-group">
         <label for="email">Email Address</label>
         <input type="email" id="email" name="email"
                value="<?= htmlspecialchars($_POST['email'] ?? '') ?>"
-               placeholder="Enter your email address" required autofocus>
+               placeholder="you@example.com" autocomplete="username" required autofocus>
       </div>
       <div class="form-group">
         <label for="password">Password</label>
         <input type="password" id="password" name="password"
-               placeholder="••••••••" required>
+               placeholder="Enter your password" autocomplete="current-password" required>
       </div>
-      <button type="submit" class="btn btn-primary btn-lg" style="width:100%; margin-top:.5rem;">
+      <button type="submit" class="btn btn-primary btn-lg auth-submit">
         <i class="fa fa-right-to-bracket"></i> Sign In
       </button>
     </form>
 
     <div class="auth-footer">
       <p>Don't have an account? <a href="register.php">Register here</a></p>
-      <hr class="divider" style="margin:1rem 0">
-     
+      <p class="auth-note"><i class="fa fa-shield-halved"></i> Your account information is protected.</p>
     </div>
   </div>
 </div>

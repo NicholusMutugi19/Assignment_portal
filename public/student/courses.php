@@ -80,12 +80,15 @@ unset($_SESSION['flash']);
     $isPaidByStudent = in_array($id, $paid, true);
 ?>
 <div class="course-selection-card"><div class="course-checkbox">
-  <div class="course-code"><?= htmlspecialchars($course['code']) ?></div>
+  <div class="course-card-heading">
+    <span class="course-code"><?= htmlspecialchars($course['code']) ?></span>
+    <span class="course-price-tag <?= $isPaid ? 'is-paid' : 'is-free' ?>"><?= $isPaid ? 'Paid · KES ' . number_format((float)$course['price'], 2) : 'Free course' ?></span>
+  </div>
   <h2 class="course-title"><?= htmlspecialchars($course['title']) ?></h2>
   <?php if (!empty($course['description'])): ?><p><?= nl2br(htmlspecialchars($course['description'])) ?></p><?php endif; ?>
   <div class="course-lecturer">Lecturer: <?= htmlspecialchars($course['lecturer_name']) ?><?php if (!empty($course['tutor_name'])): ?> | Tutor: <?= htmlspecialchars($course['tutor_name']) ?><?php endif; ?></div>
   <?php if (EDUCATION_COURSE_TARGETING_ENABLED): ?><div class="course-lecturer">Audience: <?= htmlspecialchars(str_replace('_', ' ', $course['audience'])) ?></div><?php endif; ?>
-  <?php if ($isPaid): ?><p class="fw-700">Fee: KES <?= number_format((float)$course['price'], 2) ?></p><?php endif; ?>
+  <div class="course-lecturer"><strong>Course fee:</strong> <?= $isPaid ? 'KES ' . number_format((float)$course['price'], 2) : 'No fee' ?></div>
   <?php if (PORTAL_EXTENSIONS_ENABLED && ($applications[$id]['application_status'] ?? '') === 'pending'): ?>
     <span class="badge badge-warning">Application pending approval</span>
   <?php elseif (PORTAL_EXTENSIONS_ENABLED && ($applications[$id]['application_status'] ?? '') === 'rejected'): ?>
@@ -99,17 +102,18 @@ unset($_SESSION['flash']);
       <input type="hidden" name="course_id" value="<?= $id ?>">
       <div class="form-group"><label for="phone-<?= $id ?>">M-Pesa phone number</label><input id="phone-<?= $id ?>" name="phone_number" type="tel" inputmode="numeric" pattern="(0[17][0-9]{8}|254[17][0-9]{8})" placeholder="0712345678" required></div>
       <button class="btn btn-primary" type="submit"><i class="fa fa-mobile-screen"></i> <?= $isEnrolled ? 'Pay' : 'Enroll & pay' ?> KES <?= number_format((float)$course['price'], 0) ?></button>
-      <p class="form-hint">Course resources remain locked until payment confirmation.</p>
+      <p class="form-hint">This is a paid course. Course resources stay locked until payment confirmation.</p>
     </form>
   <?php elseif ($isPaid && PORTAL_EXTENSIONS_ENABLED && empty($applications[$id])): ?>
     <form method="POST" action="/student/courses.php"><input type="hidden" name="csrf_token" value="<?= Auth::csrfToken() ?>"><input type="hidden" name="free_course_id" value="<?= $id ?>"><button class="btn btn-primary" type="submit">Apply for course</button></form>
-    <p class="form-hint">Payment becomes available after the lecturer or tutor approves your application.</p>
+    <p class="form-hint">This is a paid course. Payment becomes available after the lecturer or tutor approves your application.</p>
   <?php elseif ($isPaid): ?>
-    <span class="badge badge-warning">Payment unavailable at this time</span>
+    <span class="badge badge-warning">Paid course · payment unavailable at this time</span>
   <?php elseif ($isEnrolled): ?>
-    <span class="badge badge-info">Enrolled</span>
+    <span class="badge badge-info">Enrolled · free course</span>
   <?php else: ?>
-    <form method="POST" action="/student/courses.php"><input type="hidden" name="csrf_token" value="<?= Auth::csrfToken() ?>"><input type="hidden" name="free_course_id" value="<?= $id ?>"><button class="btn btn-primary" type="submit">Enroll</button></form>
+    <form method="POST" action="/student/courses.php"><input type="hidden" name="csrf_token" value="<?= Auth::csrfToken() ?>"><input type="hidden" name="free_course_id" value="<?= $id ?>"><button class="btn btn-primary" type="submit">Enroll for free</button></form>
+    <p class="form-hint">This is a free course. No payment is required.</p>
   <?php endif; ?>
 </div></div>
 <?php endforeach; ?>

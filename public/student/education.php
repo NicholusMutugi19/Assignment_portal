@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $yearOrForm = trim($_POST['year_or_form'] ?? '');
         if (!in_array($level, ['campus', 'high_school'], true) || $institution === '' || $yearOrForm === '') {
             $error = 'Select your education level and provide your institution and year or form.';
-        } elseif (mb_strlen($institution) > 180 || mb_strlen($yearOrForm) > 60) {
+        } elseif (strlen($institution) > 180 || strlen($yearOrForm) > 60) {
             $error = 'Institution or year/form exceeds the allowed length.';
         } else {
             try {

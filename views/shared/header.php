@@ -13,10 +13,10 @@
 <body class="role-<?= htmlspecialchars($user['role'] ?? 'guest') ?>">
 
 <nav class="navbar">
-  <div class="nav-brand">
+  <a class="nav-brand" href="<?= match ($user['role'] ?? '') { 'student' => '/student/dashboard.php', 'lecturer', 'tutor' => '/lecturer/dashboard.php', 'admin' => '/admin/', default => '/' } ?>" aria-label="<?= htmlspecialchars(APP_NAME) ?> home">
     <span class="nav-logo">⬡</span>
     <span class="nav-name"><?= APP_NAME ?></span>
-  </div>
+  </a>
 
   <div class="nav-links">
     <?php if (!empty($user['id'])): ?>
@@ -32,7 +32,7 @@
   </div>
 
   <!-- Hamburger Menu Button -->
-  <button class="hamburger-menu" id="hamburger-menu" aria-label="Toggle navigation menu">
+  <button class="hamburger-menu" id="hamburger-menu" type="button" aria-label="Open navigation menu" aria-controls="sidebar" aria-expanded="false">
     <span class="hamburger-line"></span>
     <span class="hamburger-line"></span>
     <span class="hamburger-line"></span>
@@ -44,7 +44,7 @@
   <!-- Mobile Menu Overlay -->
   <div class="mobile-menu-overlay" id="mobile-menu-overlay"></div>
 
-  <aside class="sidebar" id="sidebar">
+  <aside class="sidebar" id="sidebar" aria-label="Main navigation">
     <ul class="sidebar-nav">
       <?php if ($user['role'] === 'lecturer'): ?>
         <li><a href="/lecturer/dashboard.php"><i class="fa fa-gauge"></i> Dashboard</a></li>
@@ -54,6 +54,7 @@
         <li><a href="/lecturer/assignments.php"><i class="fa fa-list-check"></i> Assignments</a></li>
         <li><a href="/lecturer/submissions.php"><i class="fa fa-inbox"></i> All Submissions</a></li>
         <?php if (PORTAL_EXTENSIONS_ENABLED): ?>
+        <li><a href="/lecturer/create_course.php"><i class="fa fa-square-plus"></i> Create Course</a></li>
         <li><a href="/lecturer/create_online_assignment.php"><i class="fa fa-list-check"></i> New Online Assignment</a></li>
         <li><a href="/lecturer/class_sessions.php"><i class="fa fa-video"></i> Class Sessions</a></li>
         <li><a href="/lecturer/results.php"><i class="fa fa-ranking-star"></i> Results</a></li>
@@ -69,6 +70,11 @@
         <li><a href="/lecturer/class_sessions.php"><i class="fa fa-video"></i> Class Sessions</a></li>
         <li><a href="/lecturer/results.php"><i class="fa fa-ranking-star"></i> Results</a></li>
         <li><a href="/lecturer/applications.php"><i class="fa fa-user-check"></i> Course Applications</a></li>
+      <?php elseif ($user['role'] === 'tutor'): ?>
+        <li><a href="/lecturer/dashboard.php"><i class="fa fa-gauge"></i> Dashboard</a></li>
+        <li><a href="/lecturer/courses.php"><i class="fa fa-book"></i> Assigned Courses</a></li>
+        <li><a href="/lecturer/assignments.php"><i class="fa fa-list-check"></i> Assignments</a></li>
+        <li><a href="/lecturer/submissions.php"><i class="fa fa-inbox"></i> Submissions</a></li>
       <?php elseif ($user['role'] === 'admin'): ?>
         <li><a href="/admin/"><i class="fa fa-shield-halved"></i> Admin Dashboard</a></li>
         <?php if (PORTAL_EXTENSIONS_ENABLED): ?>

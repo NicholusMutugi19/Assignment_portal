@@ -88,43 +88,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <link rel="stylesheet" href="/css/app.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
-<body>
+<body class="auth-body">
 <div class="auth-page">
   <div class="auth-card">
-    <div class="auth-logo"><div class="auth-logo-icon">⬡</div></div>
-    <h1 class="auth-title">Create Account</h1>
-    <p class="auth-subtitle"><?= APP_NAME ?></p>
+    <a class="auth-brand" href="/" aria-label="<?= htmlspecialchars(APP_NAME) ?> home">
+      <span class="auth-logo-icon">⬡</span>
+      <span><?= APP_NAME ?></span>
+    </a>
+    <div class="auth-heading">
+      <span class="auth-eyebrow">Get started</span>
+      <h1 class="auth-title">Create your account</h1>
+      <p class="auth-subtitle">Join your learning community in a few steps.</p>
+    </div>
 
     <?php if ($error): ?>
-      <div class="alert alert-error"><i class="fa fa-circle-exclamation"></i> <?= $error ?></div>
+      <div class="alert alert-error"><i class="fa fa-circle-exclamation"></i> <?= htmlspecialchars($error) ?></div>
     <?php endif; ?>
     <?php if ($success): ?>
       <div class="alert alert-success"><i class="fa fa-circle-check"></i> <?= $success ?></div>
     <?php endif; ?>
 
-    <form method="POST">
+    <form method="POST" class="auth-form">
       <input type="hidden" name="csrf_token" value="<?= Auth::csrfToken() ?>">
       <div class="form-group">
-        <label>Full Name</label>
-        <input type="text" name="name" value="<?= htmlspecialchars($_POST['name'] ?? '') ?>" placeholder="Enter your full name" required>
+        <label for="full-name">Full Name</label>
+        <input id="full-name" type="text" name="name" value="<?= htmlspecialchars($_POST['name'] ?? '') ?>" placeholder="Enter your full name" autocomplete="name" maxlength="120" required>
       </div>
       <div class="form-group">
-        <label>Email</label>
-        <input type="email" name="email" value="<?= htmlspecialchars($_POST['email'] ?? '') ?>" placeholder="Enter your email address" required>
+        <label for="register-email">Email</label>
+        <input id="register-email" type="email" name="email" value="<?= htmlspecialchars($_POST['email'] ?? '') ?>" placeholder="you@example.com" autocomplete="email" required>
       </div>
       <div class="form-group">
-        <label>Password</label>
-        <input type="password" name="password" placeholder="Min 6 characters" required>
+        <label for="register-password">Password</label>
+        <input id="register-password" type="password" name="password" placeholder="At least 6 characters" autocomplete="new-password" minlength="6" required>
+        <p class="form-hint">Use at least 6 characters. Choose a unique password.</p>
       </div>
       <div class="form-group">
-        <label>Role</label>
+        <label for="account-role">I am joining as</label>
         <select name="role" id="account-role">
           <option value="student"  <?= ($_POST['role']??'student')==='student'  ? 'selected' : '' ?>>Student</option>
           <option value="lecturer" <?= ($_POST['role']??'')==='lecturer' ? 'selected' : '' ?>>Lecturer</option>
         </select>
       </div>
       <?php if (EDUCATION_COURSE_TARGETING_ENABLED): ?>
-      <fieldset id="student-education-fields" class="form-group" style="border:0;padding:0;margin:0">
+      <fieldset id="student-education-fields" class="auth-education-fields">
         <legend>Education level</legend>
         <div class="form-group">
           <label for="education-level">Where are you in your studies?</label>
@@ -144,7 +151,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
       </fieldset>
       <?php endif; ?>
-      <button type="submit" class="btn btn-primary btn-lg" style="width:100%">
+      <button type="submit" class="btn btn-primary btn-lg auth-submit">
         <i class="fa fa-user-plus"></i> Create Account
       </button>
     </form>

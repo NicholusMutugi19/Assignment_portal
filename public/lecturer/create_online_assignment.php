@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = trim($_POST['title'] ?? '');
     $description = trim($_POST['description'] ?? '');
     $deadline = trim($_POST['deadline'] ?? '');
-    if ($title === '' || mb_strlen($title) > 255) $errors[] = 'Assignment title is required (maximum 255 characters).';
+    if ($title === '' || strlen($title) > 255) $errors[] = 'Assignment title is required (maximum 255 characters).';
     if ($description === '') $errors[] = 'Instructions are required.';
     if (!$deadline || strtotime($deadline) <= time()) $errors[] = 'Choose a future deadline.';
     $texts = $_POST['question_text'] ?? [];

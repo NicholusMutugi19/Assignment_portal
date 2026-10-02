@@ -87,10 +87,15 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   /* ── Sidebar active link ─────────────────────────────────── */
-  const currentPath = window.location.pathname;
+  const currentPath = window.location.pathname.replace(/\/$/, '');
   document.querySelectorAll('.sidebar-nav a').forEach(a => {
-    if (a.getAttribute('href') && currentPath.endsWith(a.getAttribute('href').split('/').pop())) {
+    const linkUrl = new URL(a.href, window.location.origin);
+    const linkPath = linkUrl.pathname.replace(/\/$/, '');
+    const isCurrentRoute = linkPath === currentPath && !linkUrl.hash;
+    const isCurrentSection = linkPath === currentPath && Boolean(linkUrl.hash) && window.location.hash === linkUrl.hash;
+    if (isCurrentRoute || isCurrentSection) {
       a.classList.add('active');
+      a.setAttribute('aria-current', 'page');
     }
   });
 
@@ -133,28 +138,33 @@ document.addEventListener('DOMContentLoaded', () => {
   const mobileOverlay = document.getElementById('mobile-menu-overlay');
 
   if (hamburgerMenu && sidebar && mobileOverlay) {
-    // Toggle menu function
-    function toggleMobileMenu() {
-      hamburgerMenu.classList.toggle('active');
-      sidebar.classList.toggle('mobile-open');
-      mobileOverlay.classList.toggle('active');
-      document.body.classList.toggle('mobile-menu-open');
+    function setMobileMenuOpen(isOpen) {
+      hamburgerMenu.classList.toggle('active', isOpen);
+      sidebar.classList.toggle('mobile-open', isOpen);
+      mobileOverlay.classList.toggle('active', isOpen);
+      document.body.classList.toggle('mobile-menu-open', isOpen);
+      hamburgerMenu.setAttribute('aria-expanded', String(isOpen));
+      hamburgerMenu.setAttribute('aria-label', isOpen ? 'Close navigation menu' : 'Open navigation menu');
     }
 
-    // Hamburger menu click
     hamburgerMenu.addEventListener('click', function(e) {
       e.preventDefault();
-      toggleMobileMenu();
+      setMobileMenuOpen(!sidebar.classList.contains('mobile-open'));
     });
 
-    // Overlay click to close
-    mobileOverlay.addEventListener('click', toggleMobileMenu);
+    mobileOverlay.addEventListener('click', () => setMobileMenuOpen(false));
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && sidebar.classList.contains('mobile-open')) {
+        setMobileMenuOpen(false);
+        hamburgerMenu.focus();
+      }
+    });
 
     // Close menu when clicking a link (mobile)
     document.querySelectorAll('.sidebar-nav a').forEach(link => {
       link.addEventListener('click', () => {
         if (window.innerWidth <= 900) {
-          toggleMobileMenu();
+          setMobileMenuOpen(false);
         }
       });
     });
@@ -162,10 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Close menu on window resize if desktop
     window.addEventListener('resize', () => {
       if (window.innerWidth > 900) {
-        hamburgerMenu.classList.remove('active');
-        sidebar.classList.remove('mobile-open');
-        mobileOverlay.classList.remove('active');
-        document.body.classList.remove('mobile-menu-open');
+        setMobileMenuOpen(false);
       }
     });
   }

@@ -42,11 +42,11 @@ unset($_SESSION['flash']);
     </h1>
     <p class="page-subtitle">You are enrolled in <?= count($courses) ?> course<?= count($courses)!==1?'s':'' ?></p>
   </div>
-  <a href="/student/courses.php" class="btn btn-secondary">
-    <i class="fa fa-edit"></i> Manage Courses
-  </a>
-  <?php if (EDUCATION_COURSE_TARGETING_ENABLED): ?><a href="/student/education.php" class="btn btn-ghost"><i class="fa fa-graduation-cap"></i> Education Profile</a><?php endif; ?>
-  <?php if (PORTAL_EXTENSIONS_ENABLED): ?><a href="/student/results.php" class="btn btn-ghost"><i class="fa fa-ranking-star"></i> My Results</a><a href="/student/payments.php" class="btn btn-ghost"><i class="fa fa-money-bill-wave"></i> Payments</a><?php endif; ?>
+  <div class="page-actions">
+    <a href="/student/courses.php" class="btn btn-secondary"><i class="fa fa-book"></i> Course Catalog</a>
+    <?php if (EDUCATION_COURSE_TARGETING_ENABLED): ?><a href="/student/education.php" class="btn btn-ghost"><i class="fa fa-graduation-cap"></i> Education Profile</a><?php endif; ?>
+    <?php if (PORTAL_EXTENSIONS_ENABLED): ?><a href="/student/results.php" class="btn btn-ghost"><i class="fa fa-ranking-star"></i> My Results</a><a href="/student/payments.php" class="btn btn-ghost"><i class="fa fa-money-bill-wave"></i> Payments</a><?php endif; ?>
+  </div>
 </div>
 
 <?php if ($pendingApplications > 0): ?><div class="alert alert-info"><i class="fa fa-hourglass-half"></i> <?= $pendingApplications ?> course application<?= $pendingApplications === 1 ? '' : 's' ?> awaiting lecturer/tutor review.<?php if (PORTAL_EXTENSIONS_ENABLED): ?> Paid course materials remain unavailable until approval and payment confirmation.<?php endif; ?></div><?php endif; ?>

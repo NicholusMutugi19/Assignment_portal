@@ -18,7 +18,7 @@ if (!PORTAL_EXTENSIONS_ENABLED) {
 $name = trim((string)getenv('BOOTSTRAP_ADMIN_NAME'));
 $email = strtolower(trim((string)getenv('BOOTSTRAP_ADMIN_EMAIL')));
 $password = (string)getenv('BOOTSTRAP_ADMIN_PASSWORD');
-if ($name === '' || mb_strlen($name) > 120 || !filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($password) < 16) {
+if ($name === '' || strlen($name) > 120 || !filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($password) < 16) {
     fwrite(STDERR, "Provide a name, valid email, and a unique password of at least 16 characters via environment variables.\n");
     exit(1);
 }

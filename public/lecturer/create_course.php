@@ -19,11 +19,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = trim($_POST['title'] ?? '');
     $audience = $_POST['audience'] ?? '';
     if (!preg_match('/^[A-Z0-9][A-Z0-9_-]{1,19}$/', $code)) $errors[] = 'Use a unique course code with 2–20 letters, numbers, hyphens, or underscores.';
-    if ($title === '' || mb_strlen($title) > 200) $errors[] = 'Course title is required and must be 200 characters or fewer.';
+    if ($title === '' || strlen($title) > 200) $errors[] = 'Course title is required and must be 200 characters or fewer.';
     if (EDUCATION_COURSE_TARGETING_ENABLED && !in_array($audience, ['campus_only', 'high_school_only', 'both'], true)) $errors[] = 'Choose a valid student audience.';
     if (!EDUCATION_COURSE_TARGETING_ENABLED) $audience = 'both';
     foreach (['category' => 120, 'duration' => 120, 'tutor_name' => 120] as $field => $limit) {
-        if (mb_strlen(trim($_POST[$field] ?? '')) > $limit) $errors[] = ucfirst(str_replace('_', ' ', $field)) . " must be {$limit} characters or fewer.";
+        if (strlen(trim((string)($_POST[$field] ?? ''))) > $limit) $errors[] = ucfirst(str_replace('_', ' ', $field)) . " must be {$limit} characters or fewer.";
     }
     if (!$errors) {
         try {

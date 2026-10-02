@@ -271,7 +271,7 @@ class User
         if (!PORTAL_EXTENSIONS_ENABLED) throw new RuntimeException('Custom course creation is not enabled.');
         $code = strtoupper(trim($data['code']));
         $title = trim($data['title']);
-        if (!preg_match('/^[A-Z0-9][A-Z0-9_-]{1,19}$/', $code) || $title === '' || mb_strlen($title) > 200) {
+        if (!preg_match('/^[A-Z0-9][A-Z0-9_-]{1,19}$/', $code) || $title === '' || strlen($title) > 200) {
             throw new InvalidArgumentException('Invalid course code or title.');
         }
         $columns = EDUCATION_COURSE_TARGETING_ENABLED
