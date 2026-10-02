@@ -154,7 +154,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <label for="email">Email Address</label>
         <input type="email" id="email" name="email"
                value="<?= htmlspecialchars($_POST['email'] ?? '') ?>"
-               placeholder="you@example.com" autocomplete="username" required autofocus>
+               placeholder="Input your valid email" autocomplete="username" required autofocus>
       </div>
       <div class="form-group">
         <label for="password">Password</label>
