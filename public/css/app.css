@@ -107,7 +107,8 @@ img, svg { max-width: 100%; }
   justify-content: center;
   min-height: 100vh;
   min-height: 100svh;
-  overflow: hidden;
+  overflow-x: clip;
+  overflow-y: visible;
   padding: clamp(1.25rem, 5vw, 3rem);
   background: radial-gradient(ellipse at 15% 15%, rgba(108,99,255,.18), transparent 38%), radial-gradient(ellipse at 85% 85%, rgba(0,212,170,.09), transparent 35%), var(--bg);
 }
@@ -127,8 +128,8 @@ img, svg { max-width: 100%; }
   position: relative;
   z-index: 1;
   width: min(100%, 460px);
-  max-height: calc(100svh - 2rem);
-  overflow-y: auto;
+  max-height: none;
+  overflow: visible;
   padding: clamp(1.5rem, 5vw, 2.75rem);
   background: rgba(19,22,30,.94);
   border: 1px solid rgba(255,255,255,.09);
@@ -892,7 +893,7 @@ input:disabled, textarea:disabled, select:disabled { opacity: .6; cursor: not-al
   .course-price-tag { max-width: 60%; }
   .course-settings-form { min-width: 26rem; }
   .sidebar { width: min(340px, 88vw); }
-  .auth-page { align-items: flex-start; padding: 1rem; min-height: 100svh; overflow-y: auto; }
+  .auth-page { align-items: flex-start; padding: 1rem; min-height: 100svh; }
   .auth-card { max-height: none; margin: auto 0; border-radius: var(--radius-lg); }
   .auth-brand { margin-bottom: 1.6rem; }
   .auth-heading { margin-bottom: 1.4rem; }

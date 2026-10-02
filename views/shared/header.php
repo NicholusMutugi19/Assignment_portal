@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/app.css">
+<link rel="stylesheet" href="/css/app.css?v=<?= filemtime(__DIR__ . '/../../public/css/app.css') ?>">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body class="role-<?= htmlspecialchars($user['role'] ?? 'guest') ?>">
@@ -53,13 +53,11 @@
         <li><a href="/lecturer/create_assignment.php"><i class="fa fa-plus-circle"></i> New Assignment</a></li>
         <li><a href="/lecturer/assignments.php"><i class="fa fa-list-check"></i> Assignments</a></li>
         <li><a href="/lecturer/submissions.php"><i class="fa fa-inbox"></i> All Submissions</a></li>
-        <?php if (PORTAL_EXTENSIONS_ENABLED): ?>
         <li><a href="/lecturer/create_course.php"><i class="fa fa-square-plus"></i> Create Course</a></li>
         <li><a href="/lecturer/create_online_assignment.php"><i class="fa fa-list-check"></i> New Online Assignment</a></li>
         <li><a href="/lecturer/class_sessions.php"><i class="fa fa-video"></i> Class Sessions</a></li>
         <li><a href="/lecturer/results.php"><i class="fa fa-ranking-star"></i> Results</a></li>
         <li><a href="/lecturer/applications.php"><i class="fa fa-user-check"></i> Course Applications</a></li>
-        <?php endif; ?>
       <?php elseif ($user['role'] === 'tutor' && PORTAL_EXTENSIONS_ENABLED): ?>
         <li><a href="/lecturer/dashboard.php"><i class="fa fa-gauge"></i> Dashboard</a></li>
         <li><a href="/lecturer/courses.php"><i class="fa fa-book"></i> Assigned Courses</a></li>

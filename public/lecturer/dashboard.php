@@ -37,11 +37,11 @@ unset($_SESSION['flash']);
   <div class="page-actions">
     <a href="/lecturer/courses.php" class="btn btn-secondary"><i class="fa fa-book"></i> My Courses</a>
     <?php if ($user['role'] === 'lecturer' && !PORTAL_EXTENSIONS_ENABLED): ?><a href="/lecturer/select_courses.php" class="btn btn-secondary"><i class="fa fa-list"></i> Teaching Catalog</a><?php endif; ?>
-    <?php if (PORTAL_EXTENSIONS_ENABLED && $user['role'] === 'lecturer'): ?>
+    <?php if ($user['role'] === 'lecturer'): ?>
       <a href="/lecturer/create_course.php" class="btn btn-primary"><i class="fa fa-plus"></i> Create Custom Course</a>
     <?php endif; ?>
     <a href="/lecturer/create_assignment.php" class="btn btn-primary"><i class="fa fa-plus"></i> New Assignment</a>
-    <?php if (PORTAL_EXTENSIONS_ENABLED): ?>
+    <?php if (in_array($user['role'], ['lecturer', 'tutor'], true)): ?>
       <a href="/lecturer/create_online_assignment.php" class="btn btn-secondary"><i class="fa fa-list-check"></i> Online Assignment</a>
       <a href="/lecturer/applications.php" class="btn btn-secondary"><i class="fa fa-user-check"></i> Applications</a>
       <a href="/lecturer/class_sessions.php" class="btn btn-secondary"><i class="fa fa-video"></i> Class Sessions</a>
