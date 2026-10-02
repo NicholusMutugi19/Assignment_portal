@@ -36,6 +36,7 @@ unset($_SESSION['flash']);
   </div>
   <div class="page-actions">
     <a href="/lecturer/courses.php" class="btn btn-secondary"><i class="fa fa-book"></i> My Courses</a>
+    <?php if ($user['role'] === 'lecturer'): ?><a href="/lecturer/select_courses.php" class="btn btn-secondary"><i class="fa fa-list-check"></i> Choose Courses to Teach</a><?php endif; ?>
     <?php if ($user['role'] === 'lecturer' && !PORTAL_EXTENSIONS_ENABLED): ?><a href="/lecturer/select_courses.php" class="btn btn-secondary"><i class="fa fa-list"></i> Teaching Catalog</a><?php endif; ?>
     <?php if ($user['role'] === 'lecturer'): ?>
       <a href="/lecturer/create_course.php" class="btn btn-primary"><i class="fa fa-plus"></i> Create Custom Course</a>

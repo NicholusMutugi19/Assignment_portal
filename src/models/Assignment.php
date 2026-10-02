@@ -107,8 +107,12 @@ class Assignment
     {
         $extraColumns = PORTAL_EXTENSIONS_ENABLED ? ', a.assignment_type, a.tutor_name' : '';
         $groupExtra = PORTAL_EXTENSIONS_ENABLED ? ', a.assignment_type, a.tutor_name' : '';
-        $courseFilter = PORTAL_EXTENSIONS_ENABLED ? 'c.lecturer_id = :lid OR c.tutor_id = :lid2' : 'c.lecturer_id = :lid';
-        $params = PORTAL_EXTENSIONS_ENABLED ? [':lid' => $lecturerId, ':lid2' => $lecturerId] : [':lid' => $lecturerId];
+        $courseFilter = PORTAL_EXTENSIONS_ENABLED
+            ? 'c.lecturer_id = :lid OR c.tutor_id = :lid2 OR EXISTS (SELECT 1 FROM course_teaching_assignments cta WHERE cta.course_id = c.id AND cta.lecturer_id = :assigned_lid)'
+            : 'c.lecturer_id = :lid';
+        $params = PORTAL_EXTENSIONS_ENABLED
+            ? [':lid' => $lecturerId, ':lid2' => $lecturerId, ':assigned_lid' => $lecturerId]
+            : [':lid' => $lecturerId];
         return Database::query(
             'SELECT a.id, a.course_id, a.lecturer_id, a.title, a.description' . $extraColumns . ',
                     a.attachment_path, a.attachment_name, a.max_score, a.deadline,
@@ -178,8 +182,12 @@ class Assignment
 
     public static function managedBy(int $userId): array
     {
-        $tutorFilter = PORTAL_EXTENSIONS_ENABLED ? 'c.tutor_id = :tutor_id' : 'c.lecturer_id = :tutor_id';
-        $params = PORTAL_EXTENSIONS_ENABLED ? [':lecturer_id' => $userId, ':tutor_id' => $userId] : [':lecturer_id' => $userId, ':tutor_id' => $userId];
+        $tutorFilter = PORTAL_EXTENSIONS_ENABLED
+            ? 'c.tutor_id = :tutor_id OR EXISTS (SELECT 1 FROM course_teaching_assignments cta WHERE cta.course_id = c.id AND cta.lecturer_id = :assigned_id)'
+            : 'c.lecturer_id = :tutor_id';
+        $params = PORTAL_EXTENSIONS_ENABLED
+            ? [':lecturer_id' => $userId, ':tutor_id' => $userId, ':assigned_id' => $userId]
+            : [':lecturer_id' => $userId, ':tutor_id' => $userId];
         return Database::query(
             'SELECT a.*, c.title AS course_title, c.code AS course_code,
                     COUNT(s.id) AS total_submissions,

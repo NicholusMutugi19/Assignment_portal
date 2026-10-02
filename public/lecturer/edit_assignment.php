@@ -3,13 +3,14 @@ require_once __DIR__ . '/../../src/config/database.php';
 require_once __DIR__ . '/../../src/config/Database.php';
 require_once __DIR__ . '/../../src/middleware/Auth.php';
 require_once __DIR__ . '/../../src/models/Assignment.php';
+require_once __DIR__ . '/../../src/models/User.php';
 
 Auth::requireRole('lecturer', '/auth/login.php');
 $user = Auth::user();
 
 $id         = (int)($_GET['id'] ?? 0);
 $assignment = Assignment::findById($id);
-if (!$assignment || $assignment['lecturer_id'] != $user['id']) {
+if (!$assignment || !User::canManageCourse((int)$user['id'], (int)$assignment['course_id'])) {
     header('Location: /lecturer/assignments.php');
     exit;
 }

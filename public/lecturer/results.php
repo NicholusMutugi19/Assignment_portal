@@ -17,10 +17,12 @@ if ($_SERVER['REQUEST_METHOD']==='POST') {
   if (!Auth::verifyCsrf($_POST['csrf_token']??'')) { http_response_code(400); exit('Invalid security token.'); }
   $published=isset($_POST['publish']);
   $publicationSql = PORTAL_EXTENSIONS_ENABLED
-    ? 'UPDATE courses SET results_published=:published WHERE id=:id AND (lecturer_id=:owner OR tutor_id=:tutor)'
+    ? 'UPDATE courses SET results_published=:published WHERE id=:id AND (lecturer_id=:owner OR tutor_id=:tutor OR EXISTS (
+        SELECT 1 FROM course_teaching_assignments cta WHERE cta.course_id = courses.id AND cta.lecturer_id = :assigned
+      ))'
     : 'UPDATE courses SET results_published=:published WHERE id=:id AND lecturer_id=:owner';
   $publicationParams = PORTAL_EXTENSIONS_ENABLED
-    ? [':published'=>$published?1:0,':id'=>$courseId,':owner'=>(int)$user['id'],':tutor'=>(int)$user['id']]
+    ? [':published'=>$published?1:0,':id'=>$courseId,':owner'=>(int)$user['id'],':tutor'=>(int)$user['id'],':assigned'=>(int)$user['id']]
     : [':published'=>$published?1:0,':id'=>$courseId,':owner'=>(int)$user['id']];
   $updated = Database::query($publicationSql, $publicationParams)->rowCount();
   if ($updated === 0 && !User::canManageCourse((int)$user['id'], $courseId)) { http_response_code(403); exit('Course access denied.'); }

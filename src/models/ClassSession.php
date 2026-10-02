@@ -40,12 +40,14 @@ class ClassSession
     public static function forManager(int $ownerId): array
     {
         if (!PORTAL_EXTENSIONS_ENABLED) return [];
-        $tutorColumn = PORTAL_EXTENSIONS_ENABLED ? 'c.tutor_id = :tutor_id' : 'c.lecturer_id = :tutor_id';
+        $tutorColumn = PORTAL_EXTENSIONS_ENABLED
+            ? 'c.tutor_id = :tutor_id OR EXISTS (SELECT 1 FROM course_teaching_assignments cta WHERE cta.course_id = c.id AND cta.lecturer_id = :assigned_id)'
+            : 'c.lecturer_id = :tutor_id';
         return PORTAL_EXTENSIONS_ENABLED
             ? Database::query(
                 'SELECT s.*, c.code, c.title AS course_title FROM class_sessions s JOIN courses c ON c.id = s.course_id
                  WHERE c.lecturer_id = :lecturer_id OR ' . $tutorColumn . ' ORDER BY s.scheduled_at DESC',
-                [':lecturer_id' => $ownerId, ':tutor_id' => $ownerId]
+                [':lecturer_id' => $ownerId, ':tutor_id' => $ownerId, ':assigned_id' => $ownerId]
             )->fetchAll()
             : Database::query(
                 'SELECT s.*, c.code, c.title AS course_title FROM class_sessions s JOIN courses c ON c.id = s.course_id

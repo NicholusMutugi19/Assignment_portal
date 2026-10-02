@@ -49,6 +49,7 @@
       <?php if ($user['role'] === 'lecturer'): ?>
         <li><a href="/lecturer/dashboard.php"><i class="fa fa-gauge"></i> Dashboard</a></li>
         <li><a href="/lecturer/courses.php"><i class="fa fa-book"></i> My Courses</a></li>
+        <li><a href="/lecturer/select_courses.php"><i class="fa fa-list-check"></i> Choose Teaching Courses</a></li>
         <?php if (!PORTAL_EXTENSIONS_ENABLED): ?><li><a href="/lecturer/select_courses.php"><i class="fa fa-list"></i> Teaching Catalog</a></li><?php endif; ?>
         <li><a href="/lecturer/create_assignment.php"><i class="fa fa-plus-circle"></i> New Assignment</a></li>
         <li><a href="/lecturer/assignments.php"><i class="fa fa-list-check"></i> Assignments</a></li>
@@ -89,11 +90,14 @@
         <li><a href="/admin/#audit-log"><i class="fa fa-shield-halved"></i> Audit Log</a></li>
         <?php endif; ?>
       <?php else: ?>
+        <li class="sidebar-section-label">LEARNING</li>
         <li><a href="/student/dashboard.php"><i class="fa fa-gauge"></i> Dashboard</a></li>
         <li><a href="/student/courses.php"><i class="fa fa-book"></i> Course Catalog</a></li>
         <li><a href="/student/assignments.php"><i class="fa fa-book-open"></i> Assignments</a></li>
         <li><a href="/student/submissions.php"><i class="fa fa-file-arrow-up"></i> My Submissions</a></li>
+        <li><a href="/student/dashboard.php#upcoming-classes"><i class="fa fa-video"></i> Upcoming Classes</a></li>
         <?php if (PORTAL_EXTENSIONS_ENABLED): ?>
+        <li class="sidebar-section-label">MY ACCOUNT</li>
         <?php if (EDUCATION_COURSE_TARGETING_ENABLED): ?><li><a href="/student/education.php"><i class="fa fa-graduation-cap"></i> Education Profile</a></li><?php endif; ?>
         <li><a href="/student/results.php"><i class="fa fa-ranking-star"></i> My Results</a></li>
         <li><a href="/student/payments.php"><i class="fa fa-money-bill-wave"></i> Payments</a></li>

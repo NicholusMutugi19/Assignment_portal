@@ -139,8 +139,14 @@ class User
     public static function taughtCourses(int $lecturerId): array
     {
         try {
-            $statusFilter = PORTAL_EXTENSIONS_ENABLED ? " WHERE c.lecturer_id = :lid OR c.tutor_id = :lid2" : ' WHERE c.lecturer_id = :lid';
-            $params = PORTAL_EXTENSIONS_ENABLED ? [':lid' => $lecturerId, ':lid2' => $lecturerId] : [':lid' => $lecturerId];
+            $statusFilter = PORTAL_EXTENSIONS_ENABLED
+                ? ' WHERE c.lecturer_id = :lid OR c.tutor_id = :lid2 OR EXISTS (
+                    SELECT 1 FROM course_teaching_assignments cta WHERE cta.course_id = c.id AND cta.lecturer_id = :assigned_lid
+                  )'
+                : ' WHERE c.lecturer_id = :lid';
+            $params = PORTAL_EXTENSIONS_ENABLED
+                ? [':lid' => $lecturerId, ':lid2' => $lecturerId, ':assigned_lid' => $lecturerId]
+                : [':lid' => $lecturerId];
             return Database::query(
                 'SELECT c.*,
                         COUNT(DISTINCT e.student_id) AS student_count
@@ -292,8 +298,21 @@ class User
             ':tutor_name' => trim($data['tutor_name']) ?: null,
         ];
         if (EDUCATION_COURSE_TARGETING_ENABLED) $params[':audience'] = $data['audience'];
-        Database::query('INSERT INTO courses ' . $columns . ' VALUES ' . $values, $params);
-        return (int) Database::getInstance()->lastInsertId();
+        $pdo = Database::getInstance();
+        $pdo->beginTransaction();
+        try {
+            Database::query('INSERT INTO courses ' . $columns . ' VALUES ' . $values, $params);
+            $courseId = (int)$pdo->lastInsertId();
+            Database::query(
+                'INSERT IGNORE INTO course_teaching_assignments (lecturer_id, course_id) VALUES (:lecturer_id, :course_id)',
+                [':lecturer_id' => $lecturerId, ':course_id' => $courseId]
+            );
+            $pdo->commit();
+            return $courseId;
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction()) $pdo->rollBack();
+            throw $e;
+        }
     }
 
     public static function setCourseAudience(int $lecturerId, int $courseId, string $audience): bool
@@ -384,19 +403,27 @@ class User
             $sql = PORTAL_EXTENSIONS_ENABLED
                 ? 'SELECT c.*, COUNT(DISTINCT e.student_id) AS student_count FROM courses c
                LEFT JOIN enrollments e ON e.course_id = c.id
-               WHERE c.lecturer_id = :uid OR c.tutor_id = :uid2 GROUP BY c.id ORDER BY c.created_at DESC'
+                             WHERE c.lecturer_id = :uid OR c.tutor_id = :uid2 OR EXISTS (
+                                 SELECT 1 FROM course_teaching_assignments cta WHERE cta.course_id = c.id AND cta.lecturer_id = :assigned_uid
+                             ) GROUP BY c.id ORDER BY c.created_at DESC'
             : 'SELECT c.*, COUNT(DISTINCT e.student_id) AS student_count FROM courses c
                LEFT JOIN enrollments e ON e.course_id = c.id
                WHERE c.lecturer_id = :uid GROUP BY c.id ORDER BY c.created_at DESC';
-        $params = PORTAL_EXTENSIONS_ENABLED ? [':uid' => $userId, ':uid2' => $userId] : [':uid' => $userId];
+        $params = PORTAL_EXTENSIONS_ENABLED ? [':uid' => $userId, ':uid2' => $userId, ':assigned_uid' => $userId] : [':uid' => $userId];
         return Database::query($sql, $params)->fetchAll();
     }
 
     public static function canManageCourse(int $userId, int $courseId): bool
     {
-        $condition = PORTAL_EXTENSIONS_ENABLED ? '(lecturer_id = :uid OR tutor_id = :uid2)' : 'lecturer_id = :uid';
-        $params = PORTAL_EXTENSIONS_ENABLED ? [':uid' => $userId, ':uid2' => $userId, ':cid' => $courseId] : [':uid' => $userId, ':cid' => $courseId];
-        return (bool)Database::query('SELECT id FROM courses WHERE id = :cid AND ' . $condition, $params)->fetch();
+        $condition = PORTAL_EXTENSIONS_ENABLED
+            ? '(c.lecturer_id = :uid OR c.tutor_id = :uid2 OR EXISTS (
+                SELECT 1 FROM course_teaching_assignments cta WHERE cta.course_id = c.id AND cta.lecturer_id = :assigned_uid
+              ))'
+            : 'c.lecturer_id = :uid';
+        $params = PORTAL_EXTENSIONS_ENABLED
+            ? [':uid' => $userId, ':uid2' => $userId, ':assigned_uid' => $userId, ':cid' => $courseId]
+            : [':uid' => $userId, ':cid' => $courseId];
+        return (bool)Database::query('SELECT c.id FROM courses c WHERE c.id = :cid AND ' . $condition, $params)->fetch();
     }
 
     public static function manageableCourseAssignments(int $userId): array
@@ -405,11 +432,60 @@ class User
             return Database::query(
                 'SELECT c.*, COUNT(DISTINCT e.student_id) AS student_count FROM courses c
                  LEFT JOIN enrollments e ON e.course_id = c.id
-                 WHERE c.lecturer_id = :uid OR c.tutor_id = :uid2 GROUP BY c.id ORDER BY c.title',
-                [':uid' => $userId, ':uid2' => $userId]
+                 WHERE c.lecturer_id = :uid OR c.tutor_id = :uid2 OR EXISTS (
+                    SELECT 1 FROM course_teaching_assignments cta WHERE cta.course_id = c.id AND cta.lecturer_id = :assigned_uid
+                 ) GROUP BY c.id ORDER BY c.title',
+                [':uid' => $userId, ':uid2' => $userId, ':assigned_uid' => $userId]
             )->fetchAll();
         }
         return self::taughtCourses($userId);
+    }
+
+    /** Published courses that this lecturer can add to their teaching list. */
+    public static function availableTeachingCourses(int $lecturerId): array
+    {
+        if (!PORTAL_EXTENSIONS_ENABLED) return [];
+        return Database::query(
+            "SELECT c.id, c.code, c.title, c.description, c.lecturer_id, owner.name AS owner_name,
+                    EXISTS (SELECT 1 FROM course_teaching_assignments cta
+                            WHERE cta.course_id = c.id AND cta.lecturer_id = :assigned_id) AS selected
+             FROM courses c JOIN users owner ON owner.id = c.lecturer_id
+                         WHERE c.status = 'published' AND c.lecturer_id <> :owner_id
+             ORDER BY c.code, c.title",
+                        [':assigned_id' => $lecturerId, ':owner_id' => $lecturerId]
+        )->fetchAll();
+    }
+
+    /** Replace this lecturer's non-owned course selections, without transferring course ownership. */
+    public static function setTeachingCourseSelections(int $lecturerId, array $courseIds): void
+    {
+        if (!PORTAL_EXTENSIONS_ENABLED) throw new RuntimeException('Course teaching selection requires the course extensions migration.');
+        $courseIds = array_values(array_unique(array_filter(array_map('intval', $courseIds), static fn(int $id): bool => $id > 0)));
+        $pdo = Database::getInstance();
+        $pdo->beginTransaction();
+        try {
+            Database::query(
+                'DELETE cta FROM course_teaching_assignments cta
+                 JOIN courses c ON c.id = cta.course_id
+                 WHERE cta.lecturer_id = :lecturer_id AND c.lecturer_id <> :owner_id',
+                [':lecturer_id' => $lecturerId, ':owner_id' => $lecturerId]
+            );
+            foreach ($courseIds as $courseId) {
+                $available = Database::query(
+                    "SELECT id FROM courses WHERE id = :course_id AND status = 'published' AND lecturer_id <> :owner_id",
+                    [':course_id' => $courseId, ':owner_id' => $lecturerId]
+                )->fetch();
+                if (!$available) throw new InvalidArgumentException('One or more selected courses are no longer available.');
+                Database::query(
+                    'INSERT IGNORE INTO course_teaching_assignments (lecturer_id, course_id) VALUES (:lecturer_id, :course_id)',
+                    [':lecturer_id' => $lecturerId, ':course_id' => $courseId]
+                );
+            }
+            $pdo->commit();
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction()) $pdo->rollBack();
+            throw $e;
+        }
     }
 
     public static function pendingCourseApplications(int $managerId): array
@@ -419,9 +495,11 @@ class User
             "SELECT e.student_id, e.course_id, e.enrolled_at, e.application_status, u.name AS student_name, u.email,
                     u.education_level, u.institution_name, u.year_or_form, c.code, c.title AS course_title
              FROM enrollments e JOIN courses c ON c.id = e.course_id JOIN users u ON u.id = e.student_id
-             WHERE (c.lecturer_id = :lecturer_id OR c.tutor_id = :tutor_id) AND e.application_status = 'pending'
+             WHERE (c.lecturer_id = :lecturer_id OR c.tutor_id = :tutor_id OR EXISTS (
+                 SELECT 1 FROM course_teaching_assignments cta WHERE cta.course_id = c.id AND cta.lecturer_id = :assigned_id
+             )) AND e.application_status = 'pending'
              ORDER BY e.enrolled_at ASC",
-            [':lecturer_id' => $managerId, ':tutor_id' => $managerId]
+            [':lecturer_id' => $managerId, ':tutor_id' => $managerId, ':assigned_id' => $managerId]
         )->fetchAll();
     }
 
@@ -436,8 +514,10 @@ class User
                 "SELECT e.application_status, e.access_status, e.course_id FROM enrollments e
                  JOIN courses c ON c.id = e.course_id
                  WHERE e.student_id = :student_id AND e.course_id = :course_id
-                   AND (c.lecturer_id = :lecturer_id OR c.tutor_id = :tutor_id) FOR UPDATE",
-                [':student_id' => $studentId, ':course_id' => $courseId, ':lecturer_id' => $managerId, ':tutor_id' => $managerId]
+                         AND (c.lecturer_id = :lecturer_id OR c.tutor_id = :tutor_id OR EXISTS (
+                            SELECT 1 FROM course_teaching_assignments cta WHERE cta.course_id = c.id AND cta.lecturer_id = :assigned_id
+                         )) FOR UPDATE",
+                     [':student_id' => $studentId, ':course_id' => $courseId, ':lecturer_id' => $managerId, ':tutor_id' => $managerId, ':assigned_id' => $managerId]
             )->fetch();
             if (!$application || $application['application_status'] !== 'pending') throw new RuntimeException('Pending application not found for a course you manage.');
             Database::query(

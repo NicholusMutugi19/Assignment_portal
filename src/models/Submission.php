@@ -106,8 +106,12 @@ class Submission
     /** All submissions for assignments taught by a lecturer */
     public static function forLecturer(int $lecturerId): array
     {
-        $courseFilter = PORTAL_EXTENSIONS_ENABLED ? 'c.lecturer_id = :lid OR c.tutor_id = :lid2' : 'c.lecturer_id = :lid';
-        $params = PORTAL_EXTENSIONS_ENABLED ? [':lid' => $lecturerId, ':lid2' => $lecturerId] : [':lid' => $lecturerId];
+        $courseFilter = PORTAL_EXTENSIONS_ENABLED
+            ? 'c.lecturer_id = :lid OR c.tutor_id = :lid2 OR EXISTS (SELECT 1 FROM course_teaching_assignments cta WHERE cta.course_id = c.id AND cta.lecturer_id = :assigned_lid)'
+            : 'c.lecturer_id = :lid';
+        $params = PORTAL_EXTENSIONS_ENABLED
+            ? [':lid' => $lecturerId, ':lid2' => $lecturerId, ':assigned_lid' => $lecturerId]
+            : [':lid' => $lecturerId];
         return Database::query(
             'SELECT s.*,
                     u.name  AS student_name,
@@ -129,6 +133,12 @@ class Submission
 
     public static function statsForLecturer(int $lecturerId): array
     {
+        $courseFilter = PORTAL_EXTENSIONS_ENABLED
+            ? 'c.lecturer_id = :lid OR c.tutor_id = :lid2 OR EXISTS (SELECT 1 FROM course_teaching_assignments cta WHERE cta.course_id = c.id AND cta.lecturer_id = :assigned_lid)'
+            : 'a.lecturer_id = :lid';
+        $params = PORTAL_EXTENSIONS_ENABLED
+            ? [':lid' => $lecturerId, ':lid2' => $lecturerId, ':assigned_lid' => $lecturerId]
+            : [':lid' => $lecturerId];
         $row = Database::query(
             'SELECT
                 COUNT(*)                                          AS total,
@@ -137,8 +147,9 @@ class Submission
                 AVG(CASE WHEN s.score IS NOT NULL THEN s.score END)   AS avg_score
              FROM submissions s
              JOIN assignments a ON a.id = s.assignment_id
-             WHERE a.lecturer_id = :lid',
-            [':lid' => $lecturerId]
+             JOIN courses c ON c.id = a.course_id
+             WHERE ' . $courseFilter,
+            $params
         )->fetch();
         return $row;
     }
@@ -151,7 +162,9 @@ class Submission
         $sql = PORTAL_EXTENSIONS_ENABLED
             ? 'UPDATE submissions s JOIN assignments a ON a.id = s.assignment_id JOIN courses c ON c.id = a.course_id
                SET s.score = :score, s.feedback = :feedback, s.graded_by = :graded_by, s.graded_at = NOW(), s.status = \'graded\'
-               WHERE s.id = :id AND (c.lecturer_id = :manager_id OR c.tutor_id = :tutor_id)'
+                             WHERE s.id = :id AND (c.lecturer_id = :manager_id OR c.tutor_id = :tutor_id OR EXISTS (
+                                 SELECT 1 FROM course_teaching_assignments cta WHERE cta.course_id = c.id AND cta.lecturer_id = :assigned_id
+                             ))'
             : 'UPDATE submissions
              SET    score      = :score,
                     feedback   = :feedback,
@@ -160,14 +173,18 @@ class Submission
                     status     = \'graded\'
              WHERE  id = :id';
         $params = [':score' => $score, ':feedback' => $feedback, ':graded_by' => $gradedBy, ':id' => $id];
-        if (PORTAL_EXTENSIONS_ENABLED) $params[':manager_id'] = $params[':tutor_id'] = $gradedBy;
+        if (PORTAL_EXTENSIONS_ENABLED) {
+            $params[':manager_id'] = $params[':tutor_id'] = $params[':assigned_id'] = $gradedBy;
+        }
         if ($gradedBy <= 0) return false;
         $updated = Database::query($sql, $params)->rowCount() > 0;
         if (!$updated && PORTAL_EXTENSIONS_ENABLED) {
             return (bool)Database::query(
                 'SELECT s.id FROM submissions s JOIN assignments a ON a.id = s.assignment_id JOIN courses c ON c.id = a.course_id
-                 WHERE s.id = :id AND (c.lecturer_id = :manager_id OR c.tutor_id = :tutor_id)',
-                [':id' => $id, ':manager_id' => $gradedBy, ':tutor_id' => $gradedBy]
+                                 WHERE s.id = :id AND (c.lecturer_id = :manager_id OR c.tutor_id = :tutor_id OR EXISTS (
+                                     SELECT 1 FROM course_teaching_assignments cta WHERE cta.course_id = c.id AND cta.lecturer_id = :assigned_id
+                                 ))',
+                                [':id' => $id, ':manager_id' => $gradedBy, ':tutor_id' => $gradedBy, ':assigned_id' => $gradedBy]
             )->fetch();
         }
         return $updated;

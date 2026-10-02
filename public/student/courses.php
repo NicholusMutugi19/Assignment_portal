@@ -71,7 +71,7 @@ unset($_SESSION['flash']);
 </div>
 <?php if ($errors): ?><div class="alert alert-error"><i class="fa fa-circle-exclamation"></i><ul><?php foreach ($errors as $error): ?><li><?= htmlspecialchars($error) ?></li><?php endforeach; ?></ul></div><?php endif; ?>
 <?php if ($flash): ?><div class="alert alert-<?= htmlspecialchars($flash['type']) ?>"><i class="fa fa-circle-check"></i> <?= htmlspecialchars($flash['message']) ?></div><?php endif; ?>
-<div class="course-catalog-intro"><i class="fa fa-circle-info"></i><span>Application and payment status are shown on each course card. Existing enrollment history is retained.</span></div>
+<div class="course-catalog-intro" id="course-catalog"><i class="fa fa-circle-info"></i><span>Application and payment status are shown on each course card. Existing enrollment history is retained.</span></div>
 <?php if (!$courses): ?><div class="card empty-state"><div class="empty-state-icon"><i class="fa fa-book-open"></i></div><h2>No courses available</h2><p>There are no published courses matching your education level right now.</p></div><?php else: ?><div class="course-selection-grid">
 <?php foreach ($courses as $course):
     $id = (int)$course['id'];

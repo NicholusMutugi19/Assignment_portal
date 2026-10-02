@@ -49,17 +49,13 @@ unset($_SESSION['flash']);
     <p class="page-subtitle">Courses you're teaching</p>
   </div>
   <div class="page-actions">
+    <?php if ($user['role'] === 'lecturer'): ?><a href="/lecturer/select_courses.php" class="btn btn-secondary"><i class="fa fa-list-check"></i> Select Existing Courses</a><a href="/lecturer/create_course.php" class="btn btn-primary"><i class="fa fa-square-plus"></i> Create Custom Course</a><?php endif; ?>
     <?php if ($user['role'] === 'tutor'): ?>
     <?php if (PORTAL_EXTENSIONS_ENABLED): ?>
     <a href="/lecturer/create_online_assignment.php" class="btn btn-primary"><i class="fa fa-list-check"></i> Create Online Assignment</a>
     <a href="/lecturer/class_sessions.php" class="btn btn-secondary"><i class="fa fa-video"></i> Class Sessions</a>
     <?php endif; ?>
     <?php else: ?>
-    <?php if (PORTAL_EXTENSIONS_ENABLED): ?>
-    <a href="/lecturer/create_course.php" class="btn btn-primary">
-      <i class="fa fa-plus"></i> Create Course
-    </a>
-    <?php endif; ?>
     <?php if (!PORTAL_EXTENSIONS_ENABLED): ?><a href="/lecturer/select_courses.php" class="btn btn-secondary"><i class="fa fa-edit"></i> Manage Teaching Catalog</a><?php endif; ?>
     <a href="/lecturer/create_assignment.php" class="btn btn-primary">
       <i class="fa fa-plus"></i> Create Assignment
@@ -117,6 +113,7 @@ unset($_SESSION['flash']);
           </td>
           <?php if (PORTAL_EXTENSIONS_ENABLED && $user['role'] === 'lecturer'): ?>
           <td>
+            <?php if ((int)$course['lecturer_id'] === (int)$user['id']): ?>
             <form class="course-settings-form" method="POST" action="/lecturer/manage_course.php">
               <input type="hidden" name="csrf_token" value="<?= Auth::csrfToken() ?>">
               <input type="hidden" name="course_id" value="<?= (int)$course['id'] ?>">
@@ -134,10 +131,14 @@ unset($_SESSION['flash']);
               <?php if ($course['price'] !== null): ?><span class="text-muted">KES <?= number_format((float)$course['price'], 2) ?></span><?php endif; ?>
               <button class="btn btn-ghost btn-sm" type="submit" title="Save course settings"><i class="fa fa-save"></i></button>
             </form>
+            <?php else: ?>
+              <span class="badge badge-<?= htmlspecialchars($course['status'] ?? 'published') ?>"><?= htmlspecialchars(ucfirst($course['status'] ?? 'published')) ?></span>
+              <span class="text-muted"><?= $course['price'] !== null && (float)$course['price'] > 0 ? 'Paid · KES ' . number_format((float)$course['price'], 2) : 'Free course' ?></span>
+            <?php endif; ?>
           </td>
           <?php endif; ?>
           <?php if (PORTAL_EXTENSIONS_ENABLED && $user['role'] === 'lecturer'): ?>
-          <td><form class="course-settings-form tutor-assignment-form" method="POST" action="/lecturer/courses.php?assign_tutor=1"><input type="hidden" name="csrf_token" value="<?= Auth::csrfToken() ?>"><input type="hidden" name="course_id" value="<?= (int)$course['id'] ?>"><select name="tutor_id" aria-label="Assigned tutor"><option value="0">No tutor</option><?php foreach (Database::query("SELECT id,name FROM users WHERE role='tutor' AND account_status='active' ORDER BY name")->fetchAll() as $tutor): ?><option value="<?= (int)$tutor['id'] ?>" <?= (int)($course['tutor_id']??0)===(int)$tutor['id']?'selected':'' ?>><?= htmlspecialchars($tutor['name']) ?></option><?php endforeach; ?></select><button class="btn btn-ghost btn-sm" type="submit" aria-label="Save tutor assignment"><i class="fa fa-save"></i></button></form></td>
+          <td><?php if ((int)$course['lecturer_id'] === (int)$user['id']): ?><form class="course-settings-form tutor-assignment-form" method="POST" action="/lecturer/courses.php?assign_tutor=1"><input type="hidden" name="csrf_token" value="<?= Auth::csrfToken() ?>"><input type="hidden" name="course_id" value="<?= (int)$course['id'] ?>"><select name="tutor_id" aria-label="Assigned tutor"><option value="0">No tutor</option><?php foreach (Database::query("SELECT id,name FROM users WHERE role='tutor' AND account_status='active' ORDER BY name")->fetchAll() as $tutor): ?><option value="<?= (int)$tutor['id'] ?>" <?= (int)($course['tutor_id']??0)===(int)$tutor['id']?'selected':'' ?>><?= htmlspecialchars($tutor['name']) ?></option><?php endforeach; ?></select><button class="btn btn-ghost btn-sm" type="submit" aria-label="Save tutor assignment"><i class="fa fa-save"></i></button></form><?php else: ?><span class="text-muted">Managed by course owner</span><?php endif; ?></td>
           <?php endif; ?>
           <td>
             <span class="fw-700"><?= $course['student_count'] ?? 0 ?></span>

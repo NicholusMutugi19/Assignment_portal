@@ -52,9 +52,11 @@ unset($_SESSION['flash']);
 <?php if ($pendingApplications > 0): ?><div class="alert alert-info"><i class="fa fa-hourglass-half"></i> <?= $pendingApplications ?> course application<?= $pendingApplications === 1 ? '' : 's' ?> awaiting lecturer/tutor review.<?php if (PORTAL_EXTENSIONS_ENABLED): ?> Paid course materials remain unavailable until approval and payment confirmation.<?php endif; ?></div><?php endif; ?>
 <?php if ($courseFeesDue > 0): ?><div class="alert alert-warning"><i class="fa fa-money-bill-wave"></i> <?= $courseFeesDue ?> approved paid course application<?= $courseFeesDue === 1 ? ' needs' : 's need' ?> payment before resources unlock. <a href="/student/courses.php">Go to courses</a></div><?php endif; ?>
 
-<?php if ($upcomingSessions): ?>
-<div class="card"><div class="card-header"><h2 class="card-title"><i class="fa fa-video text-accent"></i> Upcoming classes</h2></div><div class="table-wrap"><table><thead><tr><th>Course</th><th>Session</th><th>Time</th><th>Join</th></tr></thead><tbody><?php foreach ($upcomingSessions as $session): ?><tr><td><?= htmlspecialchars($session['course_code'].' — '.$session['course_title']) ?></td><td><?= htmlspecialchars($session['title']) ?><?php if (!empty($session['tutor_name'])): ?><br><small>Tutor: <?= htmlspecialchars($session['tutor_name']) ?></small><?php endif; ?></td><td><?= htmlspecialchars(date('M j, Y H:i', strtotime($session['scheduled_at']))) ?></td><td><a class="btn btn-primary btn-sm" href="<?= htmlspecialchars($session['meet_link'], ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer">Join Meet</a></td></tr><?php endforeach; ?></tbody></table></div></div>
-<?php endif; ?>
+<div class="card" id="upcoming-classes">
+  <div class="card-header"><h2 class="card-title"><i class="fa fa-video text-accent"></i> Upcoming classes</h2></div>
+  <?php if ($upcomingSessions): ?><div class="table-wrap"><table><thead><tr><th>Course</th><th>Session</th><th>Time</th><th>Join</th></tr></thead><tbody><?php foreach ($upcomingSessions as $session): ?><tr><td><?= htmlspecialchars($session['course_code'].' — '.$session['course_title']) ?></td><td><?= htmlspecialchars($session['title']) ?><?php if (!empty($session['tutor_name'])): ?><br><small>Tutor: <?= htmlspecialchars($session['tutor_name']) ?></small><?php endif; ?></td><td><?= htmlspecialchars(date('M j, Y H:i', strtotime($session['scheduled_at']))) ?></td><td><a class="btn btn-primary btn-sm" href="<?= htmlspecialchars($session['meet_link'], ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer">Join Meet</a></td></tr><?php endforeach; ?></tbody></table></div>
+  <?php else: ?><div class="empty-state compact-empty-state"><p>No upcoming classes are scheduled for your courses.</p><a class="btn btn-ghost btn-sm" href="/student/courses.php">Browse courses</a></div><?php endif; ?>
+</div>
 
 <!-- Stats -->
 <div class="stats-grid">
@@ -81,7 +83,7 @@ unset($_SESSION['flash']);
 </div>
 
 <!-- Upcoming / active assignments -->
-<div class="card">
+<div class="card" id="active-assignments">
   <div class="card-header">
     <h2 class="card-title"><i class="fa fa-book-open text-accent"></i> &nbsp;Active Assignments</h2>
     <a href="/student/assignments.php" class="btn btn-ghost btn-sm">View All</a>
