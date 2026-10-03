@@ -3,8 +3,6 @@ services:
     name: assignment-portal
     runtime: docker
     plan: starter
-    buildCommand: docker build -t assignment-portal .
-    startCommand: docker run -p $PORT:80 assignment-portal
     envVars:
       - key: DB_HOST
         value: mysql-cb961aa-nicholusmutugi19-22ac.a.aivencloud.com
@@ -15,13 +13,33 @@ services:
       - key: DB_USER
         value: avnadmin
       - key: DB_PASS
-        value: ""
+        sync: false
       - key: DB_SSL_MODE
         value: REQUIRED
       - key: APP_URL
         value: https://assignment-portal-uklg.onrender.com
+      - key: PORTAL_EXTENSIONS_ENABLED
+        value: "true"
+      - key: EDUCATION_COURSE_TARGETING_ENABLED
+        value: "false"
+      - key: MPESA_ENABLED
+        value: "false"
+      - key: MPESA_ENV
+        value: sandbox
+      - key: MPESA_CONSUMER_KEY
+        sync: false
+      - key: MPESA_CONSUMER_SECRET
+        sync: false
+      - key: MPESA_SHORTCODE
+        sync: false
+      - key: MPESA_PASSKEY
+        sync: false
+      - key: MPESA_CALLBACK_URL
+        value: https://assignment-portal-uklg.onrender.com/mpesa_callback.php
+      - key: MPESA_CALLBACK_SECRET
+        sync: false
     healthCheckPath: /
     disk:
       name: uploads
-      mountPath: /var/www/html/uploads
+      mountPath: /var/www/html/public/uploads
       sizeGB: 1

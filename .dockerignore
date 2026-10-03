@@ -2,6 +2,12 @@
 .git
 .gitignore
 
+# Never include local environment credentials or local DB snapshots in an image
+.env
+.env.*
+!.env.example
+database_dump.sql
+
 # VS Code
 .vscode
 
@@ -15,6 +21,12 @@ test_*.php
 
 # Node modules (if any)
 node_modules/
+
+# Local uploads are stored on Render's persistent disk, not baked into builds
+public/uploads/assignments/*
+!public/uploads/assignments/index.php
+public/uploads/submissions/*
+!public/uploads/submissions/index.php
 
 # OS files
 .DS_Store

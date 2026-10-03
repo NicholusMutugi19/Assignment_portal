@@ -10,7 +10,7 @@ $errors = [];
 
 if (!PORTAL_EXTENSIONS_ENABLED) {
     http_response_code(503);
-    exit('Course selection is unavailable until the teaching-assignment migration is applied.');
+  exit('Course selection is disabled by the deployment configuration. Set PORTAL_EXTENSIONS_ENABLED=true in the web service environment after verifying the course migrations.');
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

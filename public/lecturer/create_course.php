@@ -7,7 +7,7 @@ require_once __DIR__ . '/../../src/models/User.php';
 Auth::requireRole('lecturer', '/auth/login.php');
 if (!PORTAL_EXTENSIONS_ENABLED) {
     http_response_code(503);
-  exit('Course creation is not enabled until the course feature migration has been applied.');
+  exit('Custom course creation is disabled by the deployment configuration. Set PORTAL_EXTENSIONS_ENABLED=true in the web service environment after verifying the feature migrations.');
 }
 $user = Auth::user();
 $errors = [];

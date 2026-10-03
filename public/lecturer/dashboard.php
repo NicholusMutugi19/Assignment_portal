@@ -29,6 +29,8 @@ unset($_SESSION['flash']);
 ?>
 <?php include __DIR__ . '/../../views/shared/header.php'; ?>
 
+<?php if (!PORTAL_EXTENSIONS_ENABLED): ?><div class="alert alert-warning"><i class="fa fa-triangle-exclamation"></i><div><strong>Course creation, class sessions, online assignments, applications, and results are switched off for this deployment.</strong><p>In Render → this web service → Environment, set <strong>PORTAL_EXTENSIONS_ENABLED</strong> to <strong>true</strong>, save, and redeploy/restart. The migrated database alone does not enable features in the running PHP process.</p></div></div><?php endif; ?>
+
 <div class="page-header">
   <div>
     <h1 class="page-title">Welcome back, <?= htmlspecialchars(explode(' ', $user['name'])[0]) ?> 👋</h1>
@@ -36,13 +38,13 @@ unset($_SESSION['flash']);
   </div>
   <div class="page-actions">
     <a href="/lecturer/courses.php" class="btn btn-secondary"><i class="fa fa-book"></i> My Courses</a>
-    <?php if ($user['role'] === 'lecturer'): ?><a href="/lecturer/select_courses.php" class="btn btn-secondary"><i class="fa fa-list-check"></i> Choose Courses to Teach</a><?php endif; ?>
+    <?php if ($user['role'] === 'lecturer' && PORTAL_EXTENSIONS_ENABLED): ?><a href="/lecturer/select_courses.php" class="btn btn-secondary"><i class="fa fa-list-check"></i> Choose Courses to Teach</a><?php endif; ?>
     <?php if ($user['role'] === 'lecturer' && !PORTAL_EXTENSIONS_ENABLED): ?><a href="/lecturer/select_courses.php" class="btn btn-secondary"><i class="fa fa-list"></i> Teaching Catalog</a><?php endif; ?>
-    <?php if ($user['role'] === 'lecturer'): ?>
+    <?php if ($user['role'] === 'lecturer' && PORTAL_EXTENSIONS_ENABLED): ?>
       <a href="/lecturer/create_course.php" class="btn btn-primary"><i class="fa fa-plus"></i> Create Custom Course</a>
     <?php endif; ?>
     <a href="/lecturer/create_assignment.php" class="btn btn-primary"><i class="fa fa-plus"></i> New Assignment</a>
-    <?php if (in_array($user['role'], ['lecturer', 'tutor'], true)): ?>
+    <?php if (PORTAL_EXTENSIONS_ENABLED && in_array($user['role'], ['lecturer', 'tutor'], true)): ?>
       <a href="/lecturer/create_online_assignment.php" class="btn btn-secondary"><i class="fa fa-list-check"></i> Online Assignment</a>
       <a href="/lecturer/applications.php" class="btn btn-secondary"><i class="fa fa-user-check"></i> Applications</a>
       <a href="/lecturer/class_sessions.php" class="btn btn-secondary"><i class="fa fa-video"></i> Class Sessions</a>

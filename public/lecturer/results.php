@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../../src/config/database.php'; require_once __DIR__ . '/../../src/config/Database.php';
 require_once __DIR__ . '/../../src/middleware/Auth.php'; require_once __DIR__ . '/../../src/models/User.php';
-if (!PORTAL_EXTENSIONS_ENABLED) { http_response_code(503); exit('Results are disabled until the required migration is applied.'); }
+if (!PORTAL_EXTENSIONS_ENABLED) { http_response_code(503); exit('Course results are disabled by the deployment configuration. Set PORTAL_EXTENSIONS_ENABLED=true after verifying the feature migrations.'); }
 $user=Auth::user(); if (!$user['id'] || !in_array($user['role'],['lecturer','tutor'],true)) { header('Location: /auth/login.php?error=unauthorized'); exit; }
 if ($user['role']==='lecturer' && User::approvalStatus((int)$user['id'])!=='approved') { header('Location: /lecturer/pending_approval.php'); exit; }
 $courses=User::manageableCourseAssignments((int)$user['id']); $courseId=(int)($_GET['course_id']??($courses[0]['id']??0));

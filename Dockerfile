@@ -7,9 +7,11 @@ RUN apt-get update && apt-get install -y \
     libjpeg-dev \
     libfreetype6-dev \
     libzip-dev \
+    libcurl4-openssl-dev \
+    libonig-dev \
     unzip \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install gd mysqli pdo pdo_mysql zip \
+    && docker-php-ext-install gd mysqli pdo pdo_mysql zip curl mbstring \
     && a2enmod rewrite \
     && rm -rf /var/lib/apt/lists/*
 
@@ -24,7 +26,7 @@ WORKDIR /var/www/html
 COPY . /var/www/html/
 
 # Create uploads directory structure and set permissions
-RUN mkdir -p /var/www/html/public/uploads/{assignments,submissions} \
+RUN mkdir -p /var/www/html/public/uploads/assignments /var/www/html/public/uploads/submissions \
     && chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/public/uploads
 

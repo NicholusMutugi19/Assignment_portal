@@ -62,7 +62,9 @@ class Admin
     {
         return [
             'users' => (int)Database::query('SELECT COUNT(*) FROM users')->fetchColumn(),
-            'courses' => (int)Database::query("SELECT COUNT(*) FROM courses WHERE status = 'published'")->fetchColumn(),
+            'courses' => (int)Database::query(PORTAL_EXTENSIONS_ENABLED
+                ? "SELECT COUNT(*) FROM courses WHERE status = 'published'"
+                : 'SELECT COUNT(*) FROM courses')->fetchColumn(),
             'pending' => PORTAL_EXTENSIONS_ENABLED ? (int)Database::query("SELECT COUNT(*) FROM users WHERE role = 'lecturer' AND lecturer_approval_status = 'pending'")->fetchColumn() : 0,
             'revenue' => PORTAL_EXTENSIONS_ENABLED ? (float)Database::query("SELECT COALESCE(SUM(amount_paid), 0) FROM payments WHERE payment_status = 'success'")->fetchColumn() : 0.0,
         ];
@@ -259,6 +261,9 @@ class Admin
     {
         $checks = [];
         $checks['database'] = Database::query('SELECT 1')->fetchColumn() == 1;
+        $checks['portal_extensions_enabled'] = PORTAL_EXTENSIONS_ENABLED;
+        $checks['education_targeting_enabled'] = EDUCATION_COURSE_TARGETING_ENABLED;
+        $checks['mpesa_enabled'] = MPESA_ENABLED;
         $checks['payment_configured'] = (string)getenv('MPESA_CONSUMER_KEY') !== ''
             && (string)getenv('MPESA_CONSUMER_SECRET') !== ''
             && (string)getenv('MPESA_SHORTCODE') !== ''

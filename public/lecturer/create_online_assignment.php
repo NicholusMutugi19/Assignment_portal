@@ -5,7 +5,7 @@ require_once __DIR__ . '/../../src/middleware/Auth.php';
 require_once __DIR__ . '/../../src/models/User.php';
 require_once __DIR__ . '/../../src/models/OnlineAssignment.php';
 require_once __DIR__ . '/../../src/models/Assignment.php';
-if (!PORTAL_EXTENSIONS_ENABLED) { http_response_code(503); exit('Online assignments are disabled until the extension migration is applied.'); }
+if (!PORTAL_EXTENSIONS_ENABLED) { http_response_code(503); exit('Online assignments are disabled by the deployment configuration. Set PORTAL_EXTENSIONS_ENABLED=true after verifying the feature migrations.'); }
 $user = Auth::user();
 if (!$user['id'] || !in_array($user['role'], ['lecturer','tutor'], true)) { header('Location: /auth/login.php?error=unauthorized'); exit; }
 if ($user['role'] === 'lecturer' && User::approvalStatus((int)$user['id']) !== 'approved') { header('Location: /lecturer/pending_approval.php'); exit; }
