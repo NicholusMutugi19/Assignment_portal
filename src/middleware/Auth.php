@@ -8,11 +8,24 @@ require_once __DIR__ . '/../config/database.php';
 
 class Auth
 {
+    private static bool $pageViewHookRegistered = false;
+
     public static function start(): void
     {
         if (session_status() === PHP_SESSION_NONE) {
             session_name(SESSION_NAME);
             session_start();
+        }
+        if (!self::$pageViewHookRegistered) {
+            self::$pageViewHookRegistered = true;
+            register_shutdown_function(static function (): void {
+                $statusCode = http_response_code();
+                if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET' || ($statusCode !== false && $statusCode !== 200)) return;
+                $script = (string)($_SERVER['SCRIPT_NAME'] ?? '');
+                if ($script === '' || str_ends_with($script, '/mpesa_callback.php')) return;
+                require_once __DIR__ . '/../models/PageView.php';
+                PageView::record($script, (string)($_SESSION['user_role'] ?? 'guest'));
+            });
         }
     }
 

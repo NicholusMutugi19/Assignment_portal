@@ -233,6 +233,67 @@ class Admin
         self::audit($adminId, 'course.suspend', 'course', (string)$courseId, $before, ['status' => 'suspended']);
     }
 
+    public static function deleteCourse(int $adminId, int $courseId): void
+    {
+        if (!PORTAL_EXTENSIONS_ENABLED) throw new RuntimeException('Admin tools are disabled.');
+        $before = Database::query('SELECT id, code, title, lecturer_id FROM courses WHERE id = :id', [':id' => $courseId])->fetch();
+        if (!$before) throw new RuntimeException('Course not found.');
+        $pdo = Database::getInstance();
+        $pdo->beginTransaction();
+        try {
+            $files = self::deleteCourseData($courseId);
+            self::audit($adminId, 'course.delete', 'course', (string)$courseId, $before, ['deleted' => true]);
+            $pdo->commit();
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction()) $pdo->rollBack();
+            throw $e;
+        }
+        self::removeStoredFiles($files);
+    }
+
+    /** Delete course-bound records inside an existing transaction and return associated file paths. */
+    private static function deleteCourseData(int $courseId): array
+    {
+        $files = [];
+        foreach (Database::query('SELECT attachment_path FROM assignments WHERE course_id = :id AND attachment_path IS NOT NULL', [':id' => $courseId])->fetchAll(PDO::FETCH_COLUMN) as $path) {
+            $files[] = (string)$path;
+        }
+        foreach (Database::query(
+            'SELECT s.file_path FROM submissions s JOIN assignments a ON a.id = s.assignment_id WHERE a.course_id = :id',
+            [':id' => $courseId]
+        )->fetchAll(PDO::FETCH_COLUMN) as $path) {
+            if (is_string($path) && !str_starts_with($path, 'online:')) $files[] = $path;
+        }
+        foreach (Database::query('SELECT stored_path FROM revision_papers WHERE course_id = :id', [':id' => $courseId])->fetchAll(PDO::FETCH_COLUMN) as $path) {
+            $files[] = 'uploads/revision-papers/' . basename((string)$path);
+        }
+        Database::query(
+            'DELETE FROM payment_callback_inbox WHERE checkout_request_id IN (SELECT checkout_request_id FROM payments WHERE course_id = :id AND checkout_request_id IS NOT NULL)',
+            [':id' => $courseId]
+        );
+        Database::query('DELETE FROM payments WHERE course_id = :id', [':id' => $courseId]);
+        Database::query('DELETE FROM application_history WHERE course_id = :id', [':id' => $courseId]);
+        Database::query('DELETE FROM class_sessions WHERE course_id = :id', [':id' => $courseId]);
+        Database::query('DELETE FROM revision_papers WHERE course_id = :id', [':id' => $courseId]);
+        Database::query('DELETE FROM enrollments WHERE course_id = :id', [':id' => $courseId]);
+        Database::query('DELETE FROM course_teaching_assignments WHERE course_id = :id', [':id' => $courseId]);
+        Database::query('DELETE FROM assignments WHERE course_id = :id', [':id' => $courseId]);
+        Database::query('DELETE FROM courses WHERE id = :id', [':id' => $courseId]);
+        return $files;
+    }
+
+    private static function removeStoredFiles(array $paths): void
+    {
+        $publicRoot = realpath(__DIR__ . '/../../public');
+        if ($publicRoot === false) return;
+        foreach (array_unique($paths) as $relativePath) {
+            $candidate = realpath($publicRoot . DIRECTORY_SEPARATOR . ltrim((string)$relativePath, '/'));
+            if ($candidate !== false && str_starts_with($candidate, $publicRoot . DIRECTORY_SEPARATOR) && is_file($candidate)) {
+                if (!@unlink($candidate)) error_log('Could not remove orphaned course file after database deletion.');
+            }
+        }
+    }
+
     public static function setCourseStatus(int $adminId, int $courseId, string $status): void
     {
         if (!PORTAL_EXTENSIONS_ENABLED) throw new RuntimeException('Admin tools are disabled.');
@@ -274,6 +335,9 @@ class Admin
         $checks['php_curl'] = function_exists('curl_init');
         $checks['php_openssl'] = extension_loaded('openssl');
         $checks['storage_writable'] = is_writable(__DIR__ . '/../../public/uploads/submissions');
+        $checks['revision_storage_writable'] = is_dir(__DIR__ . '/../../public/uploads/revision-papers')
+            ? is_writable(__DIR__ . '/../../public/uploads/revision-papers')
+            : @mkdir(__DIR__ . '/../../public/uploads/revision-papers', 0755, true);
         if (PORTAL_EXTENSIONS_ENABLED) {
             try {
                 Database::query('SELECT setting_key FROM portal_settings LIMIT 1');
@@ -281,8 +345,36 @@ class Admin
             } catch (Throwable $e) {
                 $checks['portal_settings_table'] = false;
             }
+            try {
+                Database::query('SELECT id FROM page_views LIMIT 1');
+                $checks['page_analytics_table'] = true;
+            } catch (Throwable $e) {
+                $checks['page_analytics_table'] = false;
+            }
         }
         return $checks;
+    }
+
+    public static function paymentReadiness(): array
+    {
+        $required = ['MPESA_CONSUMER_KEY', 'MPESA_CONSUMER_SECRET', 'MPESA_SHORTCODE', 'MPESA_PASSKEY', 'MPESA_CALLBACK_URL', 'MPESA_CALLBACK_SECRET'];
+        $credentialsPresent = true;
+        foreach ($required as $name) {
+            if (trim((string)getenv($name)) === '') $credentialsPresent = false;
+        }
+        $callbackHttps = strtolower((string)parse_url((string)getenv('MPESA_CALLBACK_URL'), PHP_URL_SCHEME)) === 'https';
+        $environment = strtolower(trim((string)(getenv('MPESA_ENV') ?: 'sandbox')));
+        return [
+            'environment' => in_array($environment, ['sandbox', 'production'], true) ? $environment : 'invalid',
+            'credentials_present' => $credentialsPresent,
+            'callback_https' => $callbackHttps,
+            'curl_available' => function_exists('curl_init'),
+            'extensions_enabled' => PORTAL_EXTENSIONS_ENABLED,
+            'mpesa_enabled' => MPESA_ENABLED,
+            'payments_site_switch' => self::setting('payments_enabled', '0') === '1',
+            'integration_mode' => 'CustomerPayBillOnline',
+            'supports_direct_personal_number' => false,
+        ];
     }
 
     public static function recentAudit(int $limit = 100): array
@@ -298,39 +390,43 @@ class Admin
     {
         if (!PORTAL_EXTENSIONS_ENABLED) throw new RuntimeException('Admin tools are disabled.');
         if ($adminId === $userId) throw new InvalidArgumentException('You cannot delete your own account.');
-        $user = Database::query('SELECT id, name, email, role FROM users WHERE id = :id', [':id' => $userId])->fetch();
+        $user = Database::query('SELECT id, name, email, role, account_status FROM users WHERE id = :id', [':id' => $userId])->fetch();
         if (!$user) throw new RuntimeException('User not found.');
         if ($user['role'] === 'admin') {
             $admins = (int)Database::query("SELECT COUNT(*) FROM users WHERE role = 'admin' AND account_status = 'active'")->fetchColumn();
             if ($admins <= 1) throw new InvalidArgumentException('Cannot delete the last active administrator.');
         }
-                $linked = (int)Database::query(
-                    'SELECT (SELECT COUNT(*) FROM submissions WHERE student_id = :student_id)
-                      + (SELECT COUNT(*) FROM submissions WHERE graded_by = :graded_by)
-                      + (SELECT COUNT(*) FROM enrollments WHERE student_id = :enrollment_student)
-                      + (SELECT COUNT(*) FROM courses WHERE lecturer_id = :course_owner) AS linked_records',
-                    [':student_id' => $userId, ':graded_by' => $userId, ':enrollment_student' => $userId, ':course_owner' => $userId]
-                )->fetchColumn();
-                if (PORTAL_EXTENSIONS_ENABLED) {
-                    $linked += (int)Database::query(
-                        'SELECT (SELECT COUNT(*) FROM payments WHERE student_id = :payment_user)
-                          + (SELECT COUNT(*) FROM courses WHERE tutor_id = :tutor_user)
-                          + (SELECT COUNT(*) FROM class_sessions WHERE lecturer_id = :session_user)
-                          + (SELECT COUNT(*) FROM lecturer_approval_history WHERE lecturer_id = :approval_user) AS linked_records',
-                        [':payment_user' => $userId, ':tutor_user' => $userId, ':session_user' => $userId, ':approval_user' => $userId]
-                    )->fetchColumn();
-                }
-        if ($linked > 0) throw new InvalidArgumentException('This account has enrollment, submission, or payment history. Suspend or anonymize it instead; records must be retained.');
         $pdo = Database::getInstance();
         $pdo->beginTransaction();
+        $files = [];
         try {
-            self::audit($adminId, 'user.delete', 'user', (string)$userId, ['id' => $userId, 'name' => $user['name'], 'email' => $user['email'], 'role' => $user['role']], null);
+            $ownedCourses = Database::query('SELECT id FROM courses WHERE lecturer_id = :id', [':id' => $userId])->fetchAll(PDO::FETCH_COLUMN);
+            foreach ($ownedCourses as $courseId) $files = array_merge($files, self::deleteCourseData((int)$courseId));
+            foreach (Database::query('SELECT stored_path FROM revision_papers WHERE uploader_id = :id', [':id' => $userId])->fetchAll(PDO::FETCH_COLUMN) as $path) {
+                $files[] = 'uploads/revision-papers/' . basename((string)$path);
+            }
+            foreach (Database::query('SELECT file_path FROM submissions WHERE student_id = :id', [':id' => $userId])->fetchAll(PDO::FETCH_COLUMN) as $path) {
+                if (is_string($path) && !str_starts_with($path, 'online:')) $files[] = $path;
+            }
+            Database::query(
+                'DELETE FROM payment_callback_inbox WHERE checkout_request_id IN (SELECT checkout_request_id FROM payments WHERE student_id = :id AND checkout_request_id IS NOT NULL)',
+                [':id' => $userId]
+            );
+            Database::query('DELETE FROM payments WHERE student_id = :id', [':id' => $userId]);
+            Database::query('DELETE FROM application_history WHERE student_id = :id', [':id' => $userId]);
+            Database::query('DELETE FROM class_sessions WHERE lecturer_id = :id', [':id' => $userId]);
+            Database::query('DELETE FROM revision_papers WHERE uploader_id = :id', [':id' => $userId]);
+            Database::query('DELETE FROM course_teaching_assignments WHERE lecturer_id = :id', [':id' => $userId]);
+            Database::query('UPDATE courses SET tutor_id = NULL WHERE tutor_id = :id', [':id' => $userId]);
+            Database::query('DELETE FROM lecturer_approval_history WHERE lecturer_id = :id', [':id' => $userId]);
+            self::audit($adminId, 'user.delete', 'user', (string)$userId, ['id' => $userId, 'name' => $user['name'], 'email' => $user['email'], 'role' => $user['role']], ['deleted' => true, 'course_count' => count($ownedCourses)]);
             Database::query('DELETE FROM users WHERE id = :id', [':id' => $userId]);
             $pdo->commit();
         } catch (Throwable $e) {
             if ($pdo->inTransaction()) $pdo->rollBack();
             throw $e;
         }
+        self::removeStoredFiles($files);
     }
 
     public static function systemMetrics(): array
@@ -343,6 +439,9 @@ class Admin
             'submissions' => (int)Database::query('SELECT COUNT(*) FROM submissions')->fetchColumn(),
             'graded' => (int)Database::query('SELECT COUNT(*) FROM submissions WHERE score IS NOT NULL')->fetchColumn(),
             'active_sessions' => PORTAL_EXTENSIONS_ENABLED ? (int)Database::query("SELECT COUNT(*) FROM class_sessions WHERE status='scheduled' AND scheduled_at >= NOW()")->fetchColumn() : 0,
+            'pending_applications' => PORTAL_EXTENSIONS_ENABLED ? (int)Database::query("SELECT COUNT(*) FROM enrollments WHERE application_status='pending'")->fetchColumn() : 0,
+            'draft_courses' => PORTAL_EXTENSIONS_ENABLED ? (int)Database::query("SELECT COUNT(*) FROM courses WHERE status='draft'")->fetchColumn() : 0,
+            'pending_lecturer_approvals' => PORTAL_EXTENSIONS_ENABLED ? (int)Database::query("SELECT COUNT(*) FROM users WHERE role='lecturer' AND lecturer_approval_status='pending'")->fetchColumn() : 0,
         ];
     }
 

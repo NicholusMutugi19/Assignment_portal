@@ -22,7 +22,16 @@ Open the `assignment-portal` web service in Render and set these under **Environ
 
 Keep `PORTAL_EXTENSIONS_ENABLED=true` because the extension schema is migrated. Keep `EDUCATION_COURSE_TARGETING_ENABLED=false` unless the rollout is intentionally enabled and student profiles have been handled.
 
-Do not switch `MPESA_ENV` to `production` or use production credentials until Safaricom has approved the production Daraja app and supplied production shortcode/passkey details.
+## Where to obtain Daraja credentials
+
+1. Create/sign in to a Safaricom Daraja developer account at [developer.safaricom.co.ke](https://developer.safaricom.co.ke/).
+2. Create a sandbox app and enable the M-Pesa STK Push/Lipa Na M-Pesa Online product shown in the portal. The app provides its sandbox **Consumer Key** and **Consumer Secret**; copy those directly into Render's matching secret fields.
+3. Use the sandbox shortcode and passkey from the Daraja STK Push product documentation/test credentials for the sandbox. A consumer key/secret alone does not supply a receiving account.
+4. For real payments, register the business and receiving Paybill/Till with Safaricom, complete Daraja Go-Live approval, and obtain the production shortcode/passkey and production app credentials from Safaricom. Production values are not generated merely by changing `MPESA_ENV`.
+
+The current code specifically sends `CustomerPayBillOnline` requests. It requires a Daraja business shortcode and matching passkey. **It cannot STK-push funds directly into a personal M-Pesa phone number or automatically verify ordinary person-to-person Send Money.** If the receiving method is a personal number only, keep the current M-Pesa switches off; that requires a separate manual-payment workflow where a student submits the M-Pesa transaction code and an administrator verifies it against the statement before granting access.
+
+Do not switch `MPESA_ENV` to `production` or use production credentials until Safaricom has approved the production Daraja app and supplied production shortcode/passkey details. The existing local `.env` APP_URL was corrected to the Render hostname; verify that Render's own `APP_URL` and `MPESA_CALLBACK_URL` use the actual deployed `onrender.com` hostname.
 
 ## App and callback setup
 

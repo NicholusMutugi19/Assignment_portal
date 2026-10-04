@@ -50,6 +50,7 @@ unset($_SESSION['flash']);
   </div>
   <div class="page-actions">
     <?php if ($user['role'] === 'lecturer'): ?><a href="/lecturer/select_courses.php" class="btn btn-secondary"><i class="fa fa-list-check"></i> Select Existing Courses</a><a href="/lecturer/create_course.php" class="btn btn-primary"><i class="fa fa-square-plus"></i> Create Custom Course</a><?php endif; ?>
+    <?php if (PORTAL_EXTENSIONS_ENABLED): ?><a href="/lecturer/revision_papers.php" class="btn btn-secondary"><i class="fa fa-file-circle-check"></i> Revision Papers</a><?php endif; ?>
     <?php if ($user['role'] === 'tutor'): ?>
     <?php if (PORTAL_EXTENSIONS_ENABLED): ?>
     <a href="/lecturer/create_online_assignment.php" class="btn btn-primary"><i class="fa fa-list-check"></i> Create Online Assignment</a>

@@ -26,13 +26,16 @@ WORKDIR /var/www/html
 COPY . /var/www/html/
 
 # Create uploads directory structure and set permissions
-RUN mkdir -p /var/www/html/public/uploads/assignments /var/www/html/public/uploads/submissions \
+RUN mkdir -p /var/www/html/public/uploads/assignments /var/www/html/public/uploads/submissions /var/www/html/public/uploads/revision-papers \
     && chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/public/uploads
 
 # Configure Apache to serve from public directory
 RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf \
-    && sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/apache2.conf
+    && sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/apache2.conf \
+    && sed -i 's/AllowOverride None/AllowOverride All/g' /etc/apache2/apache2.conf \
+    && printf '<Directory "/var/www/html/public/uploads/revision-papers">\n    Require all denied\n</Directory>\n' > /etc/apache2/conf-available/private-revision-papers.conf \
+    && a2enconf private-revision-papers
 
 # Expose port 80
 EXPOSE 80

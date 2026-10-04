@@ -659,6 +659,47 @@ input:disabled, textarea:disabled, select:disabled { opacity: .6; cursor: not-al
 .course-chip i { color: var(--accent-2); }
 .teaching-course-actions { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
 
+.revision-page-grid { display: grid; grid-template-columns: minmax(280px, .85fr) minmax(0, 1.5fr); gap: 1.25rem; align-items: start; }
+.revision-upload-card { padding: 1.5rem; }
+.revision-section-heading { display: flex; align-items: center; gap: .85rem; margin-bottom: 1.4rem; }
+.revision-section-heading h2 { font-family: var(--font-head); font-size: 1.1rem; }
+.revision-section-heading p { color: var(--text-muted); font-size: .8rem; margin-top: .25rem; }
+.revision-section-icon, .revision-file-icon { display: grid; place-items: center; flex: 0 0 auto; width: 2.8rem; height: 2.8rem; border-radius: .9rem; background: rgba(108,99,255,.13); color: var(--accent-2); }
+.revision-upload-form .form-group { margin-bottom: 1rem; }
+.revision-library-card { min-width: 0; }
+.revision-resource-list { display: grid; }
+.revision-resource-row { display: flex; align-items: center; gap: .9rem; padding: 1rem 0; border-bottom: 1px solid var(--border); min-width: 0; }
+.revision-resource-row:last-child { border-bottom: 0; }
+.revision-resource-main { flex: 1 1 auto; min-width: 0; }
+.revision-resource-title { color: var(--text); font-weight: 700; line-height: 1.4; overflow-wrap: anywhere; }
+.revision-resource-main p { color: var(--text-muted); font-size: .82rem; margin-top: .25rem; line-height: 1.5; }
+.revision-resource-meta { display: flex; flex-wrap: wrap; gap: .35rem .8rem; margin-top: .4rem; color: var(--text-muted); font-size: .72rem; }
+.revision-status-form { flex: 0 0 auto; }
+.revision-course-list { display: grid; gap: 1.2rem; }
+.revision-student-course .card-header { align-items: flex-start; }
+.revision-kicker { color: var(--accent-2); font-size: .65rem; letter-spacing: .13em; font-weight: 800; }
+.revision-student-course .card-title { margin-top: .3rem; }
+.revision-student-course .revision-resource-row .btn { flex: 0 0 auto; }
+.admin-action-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: .75rem; }
+.admin-action-tile { display: flex; align-items: center; gap: .85rem; min-width: 0; padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-card2); color: var(--text); transition: border-color .2s, transform .2s, background .2s; }
+.admin-action-tile:hover { border-color: var(--accent); background: rgba(108,99,255,.08); opacity: 1; transform: translateY(-2px); }
+.admin-action-tile > i { display: grid; place-items: center; flex: 0 0 auto; width: 2.5rem; height: 2.5rem; border-radius: .8rem; background: rgba(108,99,255,.15); color: var(--accent-2); }
+.admin-action-tile span { display: grid; gap: .2rem; min-width: 0; }
+.admin-action-tile strong { font-size: .85rem; }
+.admin-action-tile small { color: var(--text-muted); font-size: .72rem; line-height: 1.4; }
+.admin-analytics-grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(220px, .8fr); gap: 1.5rem; }
+.analytics-subtitle { margin-bottom: .8rem; color: var(--text-muted); font-size: .82rem; font-weight: 700; }
+.analytics-role-list { display: grid; gap: .65rem; }
+.analytics-role-list > div { display: flex; justify-content: space-between; align-items: center; gap: .75rem; padding: .65rem .75rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-card2); }
+.page-view-stat-grid { margin-top: 1rem; }
+.page-views-trend { margin-bottom: 1.5rem; padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg-card2); }
+.page-views-bars { display: flex; align-items: stretch; gap: .45rem; min-height: 150px; padding-top: .5rem; overflow-x: auto; }
+.page-views-day { display: flex; flex: 1 0 32px; flex-direction: column; align-items: center; justify-content: flex-end; gap: .25rem; min-width: 32px; }
+.page-views-day-count, .page-views-day-label { color: var(--text-muted); font-size: .62rem; white-space: nowrap; }
+.page-views-bar { width: min(100%, 24px); min-height: 4px; border-radius: 5px 5px 1px 1px; background: linear-gradient(180deg, var(--accent-2), var(--accent)); box-shadow: 0 0 12px var(--accent-glow); }
+.admin-readiness-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: .6rem; }
+.readiness-item { display: flex; align-items: center; gap: .65rem; padding: .65rem .75rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-card2); color: var(--text-muted); font-size: .8rem; }
+
 .course-code {
   display: inline-flex;
   align-items: center;
@@ -862,6 +903,12 @@ input:disabled, textarea:disabled, select:disabled { opacity: .6; cursor: not-al
   .detail-grid {
     grid-template-columns: 1fr;
   }
+
+  .revision-page-grid { grid-template-columns: 1fr; }
+  .admin-analytics-grid { grid-template-columns: 1fr; }
+  .revision-resource-row { align-items: flex-start; flex-wrap: wrap; }
+  .revision-resource-main { flex-basis: calc(100% - 4rem); }
+  .revision-resource-row > .btn, .revision-status-form { margin-left: 3.7rem; }
 
   .form-row {
     grid-template-columns: 1fr;

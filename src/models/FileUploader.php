@@ -25,13 +25,14 @@ class FileUploader
         $this->errors = [];
 
         // 1. Basic PHP upload error check
-        if ($file['error'] !== UPLOAD_ERR_OK) {
-            $this->errors[] = $this->phpUploadErrorMessage($file['error']);
+        $uploadError = (int)($file['error'] ?? UPLOAD_ERR_NO_FILE);
+        if ($uploadError !== UPLOAD_ERR_OK) {
+            $this->errors[] = $this->phpUploadErrorMessage($uploadError);
             return $this->fail();
         }
 
         // 2. Verify it is a genuine upload (CGI security principle)
-        if (!is_uploaded_file($file['tmp_name'])) {
+        if (empty($file['tmp_name']) || !is_uploaded_file($file['tmp_name'])) {
             $this->errors[] = 'Invalid upload source — possible injection attempt.';
             return $this->fail();
         }

@@ -7,12 +7,14 @@ require_once __DIR__ . '/../../src/models/Submission.php';
 require_once __DIR__ . '/../../src/models/User.php';
 require_once __DIR__ . '/../../src/models/ClassSession.php';
 require_once __DIR__ . '/../../src/models/Admin.php';
+require_once __DIR__ . '/../../src/models/RevisionPaper.php';
 
 Auth::requireRole('student', '/auth/login.php');
 $user        = Auth::user();
 $assignments = Assignment::forStudent((int)$user['id']);
 $submissions = Submission::forStudent((int)$user['id']);
 $courses     = User::enrolledCourses((int)$user['id']);
+$revisionPaperCount = PORTAL_EXTENSIONS_ENABLED ? count(RevisionPaper::forStudent((int)$user['id'])) : 0;
 $upcomingSessions = PORTAL_EXTENSIONS_ENABLED ? ClassSession::forStudent((int)$user['id']) : [];
 $applications = PORTAL_EXTENSIONS_ENABLED ? User::courseApplicationStatuses((int)$user['id']) : [];
 $pendingApplications = count(array_filter($applications, fn($application) => $application['application_status'] === 'pending'));
@@ -45,6 +47,7 @@ unset($_SESSION['flash']);
   <div class="page-actions">
     <a href="/student/courses.php" class="btn btn-secondary"><i class="fa fa-book"></i> Course Catalog</a>
     <?php if (EDUCATION_COURSE_TARGETING_ENABLED): ?><a href="/student/education.php" class="btn btn-ghost"><i class="fa fa-graduation-cap"></i> Education Profile</a><?php endif; ?>
+    <?php if (PORTAL_EXTENSIONS_ENABLED): ?><a href="/student/revision_papers.php" class="btn btn-ghost"><i class="fa fa-file-circle-check"></i> Revision Papers<?= $revisionPaperCount ? ' (' . $revisionPaperCount . ')' : '' ?></a><?php endif; ?>
     <?php if (PORTAL_EXTENSIONS_ENABLED): ?><a href="/student/results.php" class="btn btn-ghost"><i class="fa fa-ranking-star"></i> My Results</a><a href="/student/payments.php" class="btn btn-ghost"><i class="fa fa-money-bill-wave"></i> Payments</a><?php endif; ?>
   </div>
 </div>

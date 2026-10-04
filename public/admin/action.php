@@ -28,6 +28,9 @@ try {
             Admin::courseAudit($adminId, 'course.restore.request', (int)($_POST['course_id'] ?? 0));
             Admin::setCourseStatus($adminId, (int)($_POST['course_id'] ?? 0), 'published');
             break;
+        case 'delete_course':
+            Admin::deleteCourse($adminId, (int)($_POST['course_id'] ?? 0));
+            break;
         case 'update_course_fee':
             $rawPrice = trim($_POST['price'] ?? '');
             $price = $rawPrice === '' ? null : filter_var($rawPrice, FILTER_VALIDATE_FLOAT);

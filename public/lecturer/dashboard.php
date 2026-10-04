@@ -42,6 +42,7 @@ unset($_SESSION['flash']);
     <?php if ($user['role'] === 'lecturer' && !PORTAL_EXTENSIONS_ENABLED): ?><a href="/lecturer/select_courses.php" class="btn btn-secondary"><i class="fa fa-list"></i> Teaching Catalog</a><?php endif; ?>
     <?php if ($user['role'] === 'lecturer' && PORTAL_EXTENSIONS_ENABLED): ?>
       <a href="/lecturer/create_course.php" class="btn btn-primary"><i class="fa fa-plus"></i> Create Custom Course</a>
+      <a href="/lecturer/revision_papers.php" class="btn btn-secondary"><i class="fa fa-file-circle-check"></i> Share Revision Paper</a>
     <?php endif; ?>
     <a href="/lecturer/create_assignment.php" class="btn btn-primary"><i class="fa fa-plus"></i> New Assignment</a>
     <?php if (PORTAL_EXTENSIONS_ENABLED && in_array($user['role'], ['lecturer', 'tutor'], true)): ?>

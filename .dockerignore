@@ -27,6 +27,8 @@ public/uploads/assignments/*
 !public/uploads/assignments/index.php
 public/uploads/submissions/*
 !public/uploads/submissions/index.php
+public/uploads/revision-papers/*
+!public/uploads/revision-papers/.htaccess
 
 # OS files
 .DS_Store
